@@ -1,0 +1,16 @@
+{
+  "appId": "com.battle",
+  "appName": "BattleZone",
+  "webDir": "build",
+  "server": {
+    "url": "https://battlezone-51952.web.app",
+    "allowNavigation": ["battlezone-51952.web.app", "battlezone-51952.firebaseapp.com"],
+    "androidScheme": "https"
+  },
+  "plugins": {
+    "FirebaseAuthentication": {
+      "skipNativeAuth": true,
+      "providers": ["google.com"]
+    }
+  }
+}

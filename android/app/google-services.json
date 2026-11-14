@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "14532030893",
+    "project_id": "battlezone-51952",
+    "storage_bucket": "battlezone-51952.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:14532030893:android:d6a804600106b44bfb7124",
+        "android_client_info": {
+          "package_name": "com.battle"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "14532030893-d3tp4cqd4vso7rm225a0br1idivufth7.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.battle",
+            "certificate_hash": "2fb2635121e8387095b06e1f08b58fc260aea87f"
+          }
+        },
+        {
+          "client_id": "14532030893-v64idj07p333pdfanqld5au63cdol1tv.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAizFOYb4r-_CAvuLQn6OuAeFiwaCYENUc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "14532030893-v64idj07p333pdfanqld5au63cdol1tv.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
