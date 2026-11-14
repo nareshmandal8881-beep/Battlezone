@@ -4,6 +4,7 @@ import toast from 'react-hot-toast';
 import { FiMenu, FiX } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
 import { Avatar } from './ui';
+import { DownloadAppButton } from './DownloadApp';
 
 export const Wordmark = () => (
   <Link to="/" className="flex items-center gap-2 leading-none">
@@ -50,6 +51,7 @@ const Navbar = () => {
         </div>
 
         <div className="hidden md:flex items-center gap-3">
+          <DownloadAppButton className="text-[14px] font-medium inline-flex items-center gap-1.5 hover:underline underline-offset-4 px-1" label="App" />
           {currentUser ? (
             <>
               <Link to="/profile" className="flex items-center gap-2 pr-1 hover:underline underline-offset-4">
@@ -77,6 +79,7 @@ const Navbar = () => {
             <Link key={l.path} to={l.path} onClick={() => setOpen(false)} className="py-3 border-b border-line font-medium">{l.label}</Link>
           ))}
           {isAdmin && <Link to="/admin" onClick={() => setOpen(false)} className="py-3 border-b border-line font-medium">Admin</Link>}
+          <DownloadAppButton className="py-3 border-b border-line font-medium inline-flex items-center gap-2" label="Download Android app" />
           {currentUser ? (
             <>
               <Link to="/profile" onClick={() => setOpen(false)} className="py-3 border-b border-line font-medium">My profile</Link>

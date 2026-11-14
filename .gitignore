@@ -7,3 +7,4 @@ google-services (1).json
 # regenerated on every start/build
 src/buildInfo.json
 public/version.json
+!apk/BattleZone.apk

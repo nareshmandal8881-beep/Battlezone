@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { FaInstagram, FaYoutube, FaDiscord } from 'react-icons/fa';
+import { APK_URL, showDownload } from './DownloadApp';
 
 const Footer = () => (
   <footer className="border-t border-ink mt-16">
@@ -22,6 +23,7 @@ const Footer = () => (
           <li><Link to="/tournaments" className="hover:underline">Tournaments</Link></li>
           <li><Link to="/leaderboard" className="hover:underline">Leaderboard</Link></li>
           <li><Link to="/profile" className="hover:underline">My profile</Link></li>
+          {showDownload() && <li><a href={APK_URL} download className="hover:underline">Android app (APK)</a></li>}
         </ul>
       </div>
       <div>

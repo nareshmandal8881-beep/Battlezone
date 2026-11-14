@@ -5,6 +5,7 @@ import { db } from '../firebase/config';
 import { useAuth } from '../context/AuthContext';
 import TournamentCard from '../components/TournamentCard';
 import { Empty } from '../components/ui';
+import { DownloadAppButton, DownloadAppStrip } from '../components/DownloadApp';
 
 const GAMES = ['BGMI', 'PUBG', 'Free Fire', 'COD', 'Valorant', 'Custom'];
 
@@ -53,6 +54,7 @@ const Home = () => {
           <div className="flex flex-wrap gap-3 mt-6">
             <Link to="/tournaments" className="btn btn-dark">Browse matches</Link>
             {!currentUser && <Link to="/register" className="btn btn-light">Create account</Link>}
+            <DownloadAppButton />
           </div>
         </div>
       </section>
@@ -101,6 +103,8 @@ const Home = () => {
           </div>
         )}
       </section>
+
+      <DownloadAppStrip />
 
       {/* How it works */}
       <section className="border-y border-ink">
