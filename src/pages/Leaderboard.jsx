@@ -61,7 +61,7 @@ const Leaderboard = () => {
                   <th className="eyebrow font-normal py-3 text-right">Earnings</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="stagger">
                 {ranked.map((p, i) => {
                   const me = currentUser?.uid === p.id;
                   return (

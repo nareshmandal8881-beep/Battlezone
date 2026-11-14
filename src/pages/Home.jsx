@@ -6,6 +6,8 @@ import { useAuth } from '../context/AuthContext';
 import TournamentCard from '../components/TournamentCard';
 import { Empty } from '../components/ui';
 import { DownloadAppButton, DownloadAppStrip } from '../components/DownloadApp';
+import { isApp } from '../lib/native';
+import AppHome from './AppHome';
 
 const GAMES = ['BGMI', 'PUBG', 'Free Fire', 'COD', 'Valorant', 'Custom'];
 
@@ -16,7 +18,9 @@ const STEPS = [
   ['Play & get paid', 'Results are posted after the match. Winnings go to your profile.'],
 ];
 
-const Home = () => {
+const Home = () => (isApp ? <AppHome /> : <WebHome />);
+
+const WebHome = () => {
   const { currentUser } = useAuth();
   const [tournaments, setTournaments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -42,11 +46,12 @@ const Home = () => {
       <section className="wrap pt-12 sm:pt-16 pb-10 border-b border-ink grid lg:grid-cols-[1.4fr_1fr] gap-10 items-end">
         <div>
           <p className="eyebrow mb-5">Custom-room tournaments · India</p>
-          <h1 className="text-[56px] sm:text-[88px] lg:text-[104px] uppercase">
+          <h1 className="text-[56px] sm:text-[88px] lg:text-[104px] uppercase page-anim">
             Drop in.<br />Play the room.<br /><span className="text-accent">Take the pot.</span>
           </h1>
         </div>
         <div className="lg:pb-3">
+          <img src="/logo512.png" alt="BattleZone" className="hidden lg:block w-56 h-56 object-cover border border-ink mb-8 splash-glow" style={{ boxShadow: '6px 6px 0 #121212' }} />
           <p className="text-[17px] leading-relaxed text-[#3a3834] max-w-md">
             Book a slot in BGMI, Free Fire, COD and Valorant matches. Entry fees are small, prize splits are listed up front,
             and the room details land right here when it's time to play.
@@ -98,7 +103,7 @@ const Home = () => {
         ) : tournaments.length === 0 ? (
           <Empty title="No matches posted yet">New tournaments appear here as soon as an admin creates them.</Empty>
         ) : (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 stagger">
             {tournaments.map((t) => <TournamentCard key={t.id} tournament={t} />)}
           </div>
         )}
@@ -109,7 +114,7 @@ const Home = () => {
       {/* How it works */}
       <section className="border-y border-ink">
         <div className="wrap pt-10 pb-2"><p className="eyebrow">How it works</p></div>
-        <ol className="grid sm:grid-cols-2 lg:grid-cols-4">
+        <ol className="grid sm:grid-cols-2 lg:grid-cols-4 stagger">
           {STEPS.map(([title, body], i) => (
             <li key={title} className="wrap py-8 border-t sm:border-r border-line last:border-r-0">
               <span className="num text-[13px] text-accent font-bold">0{i + 1}</span>

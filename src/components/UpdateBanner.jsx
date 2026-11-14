@@ -40,7 +40,7 @@ const UpdateBanner = () => {
   if (!newVersion || hidden) return null;
 
   return (
-    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[90] w-[calc(100%-32px)] max-w-md bg-ink text-white border border-ink flex items-center gap-3 pl-4 pr-2 py-2"
+    <div className="fixed bottom-[84px] sm:bottom-4 left-1/2 -translate-x-1/2 z-[90] w-[calc(100%-32px)] max-w-md bg-ink text-white border border-ink flex items-center gap-3 pl-4 pr-2 py-2"
       style={{ boxShadow: '4px 4px 0 #d9461a' }} role="status">
       <span className="text-[14px] flex-1">A new version of BattleZone is available.</span>
       <button onClick={() => setHidden(true)} className="text-[13px] text-[#bdb9b0] hover:text-white px-2 h-9">Later</button>

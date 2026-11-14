@@ -13,7 +13,7 @@ const TournamentCard = ({ tournament }) => {
   const fill = maxSlots ? Math.min((joined / maxSlots) * 100, 100) : 0;
 
   return (
-    <Link to={`/tournament/${id}`} className="group block box hover:border-ink transition-colors">
+    <Link to={`/tournament/${id}`} className="group block box hover:border-ink lift press">
       <div className="relative aspect-[16/8] bg-[#f1efea] border-b border-line overflow-hidden">
         {bannerUrl ? (
           <img src={bannerUrl} alt="" className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300" />

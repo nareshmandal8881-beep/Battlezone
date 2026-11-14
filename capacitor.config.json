@@ -4,13 +4,31 @@
   "webDir": "build",
   "server": {
     "url": "https://battlezone-51952.web.app",
-    "allowNavigation": ["battlezone-51952.web.app", "battlezone-51952.firebaseapp.com"],
+    "allowNavigation": [
+      "battlezone-51952.web.app",
+      "battlezone-51952.firebaseapp.com"
+    ],
     "androidScheme": "https"
   },
   "plugins": {
     "FirebaseAuthentication": {
       "skipNativeAuth": true,
-      "providers": ["google.com"]
+      "providers": [
+        "google.com"
+      ]
+    },
+    "SplashScreen": {
+      "launchShowDuration": 4000,
+      "launchAutoHide": true,
+      "backgroundColor": "#000000",
+      "showSpinner": false,
+      "androidScaleType": "CENTER_CROP"
+    },
+    "StatusBar": {
+      "style": "LIGHT",
+      "backgroundColor": "#ffffff",
+      "overlaysWebView": false
     }
-  }
+  },
+  "backgroundColor": "#000000"
 }

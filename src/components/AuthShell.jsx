@@ -1,4 +1,5 @@
 import React from 'react';
+import { isApp } from '../lib/native';
 
 export const GoogleIcon = () => (
   <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
@@ -17,11 +18,27 @@ export const Divider = () => (
   </div>
 );
 
-// Two-column auth layout: dark panel on the left (desktop only), form on the right.
-const AuthShell = ({ kicker, title, children }) => (
+// App version: logo on black up top, form below — no website chrome.
+const AppAuth = ({ kicker, title, children }) => (
+  <div className="min-h-screen flex flex-col bg-white">
+    <div className="bg-black flex flex-col items-center pt-10 pb-6">
+      <img src="/logo512.png" alt="BattleZone" className="w-44 h-44 object-contain splash-glow" />
+    </div>
+    <div className="flex-1 px-5 pt-6 pb-10 -mt-3 bg-white border-t-4 border-[#f5b301] page-anim">
+      <p className="eyebrow mb-1">{kicker}</p>
+      <h1 className="text-[36px] mb-5">{title}</h1>
+      {children}
+    </div>
+  </div>
+);
+
+// Website version: dark panel on the left (desktop only), form on the right.
+const AuthShell = (props) => (isApp ? <AppAuth {...props} /> : <WebAuth {...props} />);
+
+const WebAuth = ({ kicker, title, children }) => (
   <div className="grid md:grid-cols-[1fr_1.1fr] min-h-[calc(100vh-180px)]">
-    <aside className="hidden md:flex flex-col justify-between bg-ink text-white p-10">
-      <p className="eyebrow !text-[#9a978f]">BattleZone / account</p>
+    <aside className="hidden md:flex flex-col justify-between bg-black text-white p-10">
+      <img src="/logo192.png" alt="BattleZone" className="w-24 h-24 object-cover" />
       <div>
         <p className="display text-[64px] leading-[0.95]">Your slot.<br />Your room.<br /><span className="text-accent">Your win.</span></p>
         <ul className="mt-8 space-y-2 text-[14px] text-[#cfccc4]">
@@ -34,6 +51,7 @@ const AuthShell = ({ kicker, title, children }) => (
     </aside>
     <section className="flex items-center justify-center px-4 sm:px-10 py-12">
       <div className="w-full max-w-[380px]">
+        <img src="/logo192.png" alt="" className="w-16 h-16 object-cover border border-ink mb-5 md:hidden" />
         <p className="eyebrow mb-2">{kicker}</p>
         <h1 className="text-[44px] mb-7">{title}</h1>
         {children}

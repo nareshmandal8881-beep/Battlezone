@@ -7,8 +7,8 @@ import { Avatar } from './ui';
 import { DownloadAppButton } from './DownloadApp';
 
 export const Wordmark = () => (
-  <Link to="/" className="flex items-center gap-2 leading-none">
-    <span className="w-7 h-7 bg-ink text-white grid place-items-center text-[13px] font-black">BZ</span>
+  <Link to="/" className="flex items-center gap-2.5 leading-none">
+    <img src="/logo192.png" alt="" className="w-10 h-10 object-cover border border-ink" />
     <span className="display text-[22px] tracking-tight">BattleZone</span>
   </Link>
 );
@@ -16,6 +16,7 @@ export const Wordmark = () => (
 const links = [
   { label: 'Tournaments', path: '/tournaments' },
   { label: 'Leaderboard', path: '/leaderboard' },
+  { label: 'Settings', path: '/settings', auth: true },
 ];
 
 const linkClass = ({ isActive }) =>
@@ -44,7 +45,7 @@ const Navbar = () => {
         <Wordmark />
 
         <div className="hidden md:flex items-center gap-7 mr-auto ml-6">
-          {links.map((l) => (
+          {links.filter((l) => !l.auth || currentUser).map((l) => (
             <NavLink key={l.path} to={l.path} className={linkClass}>{l.label}</NavLink>
           ))}
           {isAdmin && <NavLink to="/admin" className={linkClass}>Admin</NavLink>}
@@ -75,7 +76,7 @@ const Navbar = () => {
 
       {open && (
         <div className="md:hidden border-t border-line wrap py-3 flex flex-col">
-          {links.map((l) => (
+          {links.filter((l) => !l.auth || currentUser).map((l) => (
             <Link key={l.path} to={l.path} onClick={() => setOpen(false)} className="py-3 border-b border-line font-medium">{l.label}</Link>
           ))}
           {isAdmin && <Link to="/admin" onClick={() => setOpen(false)} className="py-3 border-b border-line font-medium">Admin</Link>}

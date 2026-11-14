@@ -1,4 +1,5 @@
 import React from 'react';
+import { isApp } from '../lib/native';
 
 export const rupees = (n) => `₹${Number(n || 0).toLocaleString('en-IN')}`;
 
@@ -6,7 +7,7 @@ export const StatusTag = ({ status = 'upcoming' }) => {
   if (status === 'live') {
     return (
       <span className="tag border-live text-live bg-white">
-        <span className="w-1.5 h-1.5 rounded-full bg-live animate-pulse" /> Live
+        <span className="w-1.5 h-1.5 rounded-full bg-live ping text-live" /> Live
       </span>
     );
   }
@@ -16,7 +17,11 @@ export const StatusTag = ({ status = 'upcoming' }) => {
   return <span className="tag border-ink text-ink bg-white">Open</span>;
 };
 
-export const PageHead = ({ kicker, title, children }) => (
+// In the Android app the top bar already shows the title, so only render the controls.
+export const PageHead = ({ kicker, title, children }) =>
+  isApp ? (
+    children ? <div className="px-4 pt-3 pb-3 border-b border-line [&>*]:w-full">{children}</div> : null
+  ) : (
   <header className="wrap pt-10 pb-8 border-b border-ink">
     {kicker && <p className="eyebrow mb-3">{kicker}</p>}
     <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">

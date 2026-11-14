@@ -81,7 +81,7 @@ const Tournaments = () => {
         ) : list.length === 0 ? (
           <Empty title="Nothing matches those filters">Try another game or clear the search.</Empty>
         ) : (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 stagger">
             {list.map((t) => <TournamentCard key={t.id} tournament={t} />)}
           </div>
         )}
