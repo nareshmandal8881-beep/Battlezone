@@ -5,8 +5,9 @@ import { FiChevronRight, FiAward, FiBarChart2, FiUser, FiShield } from 'react-ic
 import { db } from '../firebase/config';
 import { useAuth } from '../context/AuthContext';
 import { StatusTag, Empty, rupees } from '../components/ui';
+import { isAdminUser } from '../lib/admin';
+import { useGames, isPublished } from '../lib/games';
 
-const GAMES = ['BGMI', 'PUBG', 'Free Fire', 'COD', 'Valorant', 'Custom'];
 
 const greeting = () => {
   const h = new Date().getHours();
@@ -46,7 +47,7 @@ const AppHome = () => {
     (async () => {
       try {
         const snap = await getDocs(query(collection(db, 'tournaments'), orderBy('createdAt', 'desc'), limit(20)));
-        setList(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+        setList(snap.docs.map((d) => ({ id: d.id, ...d.data() })).filter(isPublished));
       } catch (e) { console.error(e); }
       setLoading(false);
     })();
@@ -56,7 +57,8 @@ const AppHome = () => {
   const live = list.filter((t) => t.status === 'live');
   const upcoming = list.filter((t) => t.status !== 'live' && t.status !== 'completed');
   const mine = list.filter((t) => t.registeredPlayers?.includes(currentUser?.uid) && t.status !== 'completed');
-  const isAdmin = userProfile?.role === 'admin';
+  const isAdmin = isAdminUser(currentUser, userProfile);
+  const games = useGames();
 
   return (
     <div>
@@ -112,9 +114,9 @@ const AppHome = () => {
       </section>
 
       <div className="flex gap-2 overflow-x-auto px-4 py-3 border-b border-line [scrollbar-width:none]">
-        {GAMES.map((g) => (
-          <Link key={g} to={`/tournaments?game=${encodeURIComponent(g)}`}
-            className="shrink-0 h-9 px-4 grid place-items-center border border-ink text-[13px] font-semibold press">{g}</Link>
+        {games.map(({ id, name, color }) => (
+          <Link key={id} to={name === 'Ludo' ? '/ludo' : `/tournaments?game=${encodeURIComponent(name)}`}
+            className="shrink-0 h-9 pl-2 pr-4 flex items-center gap-2 border border-ink text-[13px] font-semibold press"><span className="w-2.5 h-5" style={{ background: color }} />{name}</Link>
         ))}
       </div>
 

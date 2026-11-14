@@ -7,6 +7,7 @@ import toast from 'react-hot-toast';
 import { db, storage, auth } from '../firebase/config';
 import { useAuth } from '../context/AuthContext';
 import { Avatar, StatusTag, Empty, rupees } from '../components/ui';
+import { isAdminUser } from '../lib/admin';
 
 const Profile = () => {
   const { currentUser, fetchUserProfile } = useAuth();
@@ -90,7 +91,7 @@ const Profile = () => {
           <input ref={fileRef} type="file" accept="image/*" onChange={handleAvatar} className="hidden" />
         </div>
         <div className="flex-1">
-          <p className="eyebrow mb-2">{profile?.role === 'admin' ? 'Admin' : 'Player'}</p>
+          <p className="eyebrow mb-2">{isAdminUser(currentUser, profile) ? 'Admin' : 'Player'}</p>
           {editing ? (
             <div className="flex flex-wrap gap-2">
               <input className="field max-w-xs" value={newName} onChange={(e) => setNewName(e.target.value)} maxLength={24} autoFocus />

@@ -5,8 +5,8 @@ import { FiSearch } from 'react-icons/fi';
 import { db } from '../firebase/config';
 import TournamentCard from '../components/TournamentCard';
 import { PageHead, Empty } from '../components/ui';
+import { useGames, isPublished } from '../lib/games';
 
-const GAMES = ['All', 'BGMI', 'PUBG', 'Free Fire', 'COD', 'Valorant', 'Custom'];
 const STATUSES = [['All', 'Any status'], ['upcoming', 'Open'], ['live', 'Live'], ['completed', 'Ended']];
 const SORTS = [['newest', 'Newest'], ['prize_desc', 'Biggest prize'], ['fee_asc', 'Cheapest entry']];
 
@@ -18,12 +18,14 @@ const Tournaments = () => {
   const [status, setStatus] = useState('All');
   const [sort, setSort] = useState('newest');
   const [search, setSearch] = useState('');
+  const gameNames = useGames().map((x) => x.name);
+  const GAMES = ['All', ...gameNames];
 
   useEffect(() => {
     (async () => {
       try {
         const snap = await getDocs(query(collection(db, 'tournaments'), orderBy('createdAt', 'desc')));
-        setTournaments(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+        setTournaments(snap.docs.map((d) => ({ id: d.id, ...d.data() })).filter(isPublished));
       } catch (e) {
         console.error(e);
       }

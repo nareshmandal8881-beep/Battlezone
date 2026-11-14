@@ -14,6 +14,7 @@ const TITLES = {
   '/admin': 'Admin',
   '/admin/create': 'New tournament',
   '/admin/manage': 'Manage',
+  '/admin/games': 'Games',
 };
 
 const ROOT = ['/', '/tournaments', '/leaderboard', '/settings', '/ludo'];

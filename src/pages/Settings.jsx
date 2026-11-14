@@ -9,6 +9,7 @@ import { Avatar, PageHead, rupees } from '../components/ui';
 import { isApp, shareApp } from '../lib/native';
 import { APK_URL } from '../components/DownloadApp';
 import buildInfo from '../buildInfo.json';
+import { isAdminUser } from '../lib/admin';
 
 const Row = ({ icon: Icon, label, hint, to, href, onClick, danger }) => {
   const inner = (
@@ -40,7 +41,7 @@ const Settings = () => {
   const [checking, setChecking] = useState(false);
 
   const name = userProfile?.username || currentUser?.displayName || 'Player';
-  const isAdmin = userProfile?.role === 'admin';
+  const isAdmin = isAdminUser(currentUser, userProfile);
   const hasPassword = currentUser?.providerData?.some((p) => p.providerId === 'password');
 
   const checkUpdate = async () => {

@@ -5,6 +5,7 @@ import { FiMenu, FiX } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
 import { Avatar } from './ui';
 import { DownloadAppButton } from './DownloadApp';
+import { isAdminUser } from '../lib/admin';
 
 export const Wordmark = () => (
   <Link to="/" className="flex items-center gap-2.5 leading-none">
@@ -38,7 +39,7 @@ const Navbar = () => {
   };
 
   const name = userProfile?.username || currentUser?.displayName || 'Player';
-  const isAdmin = userProfile?.role === 'admin';
+  const isAdmin = isAdminUser(currentUser, userProfile);
 
   return (
     <nav className="sticky top-0 z-40 bg-white border-b border-ink">

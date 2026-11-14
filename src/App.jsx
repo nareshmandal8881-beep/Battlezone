@@ -5,6 +5,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { isFirebaseConfigured } from './firebase/config';
 import { isApp, initNative } from './lib/native';
 import { useAppLayout } from './lib/layout';
+import { isAdminUser } from './lib/admin';
 
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
@@ -22,6 +23,7 @@ import Ludo from './pages/Ludo';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import CreateTournament from './pages/admin/CreateTournament';
 import ManageTournaments from './pages/admin/ManageTournaments';
+import ManageGames from './pages/admin/ManageGames';
 
 const ProtectedRoute = ({ children }) => {
   const { currentUser } = useAuth();
@@ -31,8 +33,8 @@ const ProtectedRoute = ({ children }) => {
 
 const AdminRoute = ({ children }) => {
   const { currentUser, userProfile } = useAuth();
-  if (!currentUser) return <Navigate to="/login" replace />;
-  if (userProfile?.role !== 'admin') return <Navigate to="/" replace />;
+  if (!currentUser) return <Navigate to="/admin/login" replace />;
+  if (!isAdminUser(currentUser, userProfile)) return <Navigate to="/" replace />;
   return children;
 };
 
@@ -57,7 +59,9 @@ const routes = (
     <Route path="/register" element={<Register />} />
     <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
     <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+    <Route path="/admin/login" element={<Login admin />} />
     <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+    <Route path="/admin/games" element={<AdminRoute><ManageGames /></AdminRoute>} />
     <Route path="/admin/create" element={<AdminRoute><CreateTournament /></AdminRoute>} />
     <Route path="/admin/manage" element={<AdminRoute><ManageTournaments /></AdminRoute>} />
     <Route path="*" element={<Navigate to="/" replace />} />

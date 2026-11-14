@@ -18,7 +18,7 @@ const AdminDashboard = () => {
         const revenue = pSnap.docs.reduce((s, d) => s + (d.data().amount || 0), 0);
         const uSnap = await getDocs(collection(db, 'users'));
         const players = uSnap.docs.filter((d) => d.data().role !== 'admin').length;
-        setStats({ tournaments: ts.length, players, revenue, live: ts.filter((t) => t.status === 'live').length });
+        setStats({ tournaments: ts.length, players, revenue, live: ts.filter((t) => t.status === 'live').length, drafts: ts.filter((t) => t.published === false).length });
         setRecent(ts.slice(0, 8));
       } catch (e) {
         console.error(e);
@@ -33,15 +33,17 @@ const AdminDashboard = () => {
         <div className="flex gap-2">
           <Link to="/admin/create" className="btn btn-dark">New tournament</Link>
           <Link to="/admin/manage" className="btn btn-light">Manage</Link>
+          <Link to="/admin/games" className="btn btn-light">Games</Link>
         </div>
       </PageHead>
 
-      <dl className="grid grid-cols-2 md:grid-cols-4 border-b border-ink">
+      <dl className="grid grid-cols-2 md:grid-cols-5 border-b border-ink">
         {[
           ['Tournaments', stats.tournaments],
           ['Players', stats.players],
           ['Revenue', rupees(stats.revenue)],
           ['Live now', stats.live],
+          ['Drafts', stats.drafts || 0],
         ].map(([k, v]) => (
           <div key={k} className="wrap py-6 border-r border-b md:border-b-0 border-line">
             <dt className="eyebrow">{k}</dt>

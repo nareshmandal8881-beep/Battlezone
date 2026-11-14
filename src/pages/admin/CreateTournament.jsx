@@ -5,8 +5,8 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import toast from 'react-hot-toast';
 import { db, storage } from '../../firebase/config';
 import { PageHead } from '../../components/ui';
+import { useGames } from '../../lib/games';
 
-const GAMES = ['BGMI', 'PUBG', 'Free Fire', 'COD', 'Valorant', 'Custom'];
 const MODES = ['Squad', 'Duo', 'Solo', 'TDM', 'Clash Squad'];
 const SLOT_OPTIONS = [25, 50, 100, 200];
 
@@ -27,6 +27,9 @@ const Field = ({ label, children }) => (
 const CreateTournament = () => {
   const navigate = useNavigate();
   const [saving, setSaving] = useState(false);
+  const GAMES = useGames().map((x) => x.name);
+  const [bannerLink, setBannerLink] = useState('');
+  const publishRef = React.useRef(true);
   const [bannerFile, setBannerFile] = useState(null);
   const [preview, setPreview] = useState(null);
   const [f, setF] = useState({
@@ -47,17 +50,21 @@ const CreateTournament = () => {
     if (!f.name.trim() || !f.date || !f.time) { toast.error('Name, date and time are required'); return; }
     setSaving(true);
     try {
-      let bannerUrl = null;
-      if (bannerFile) {
-        const r = ref(storage, `banners/${Date.now()}_${bannerFile.name}`);
-        await uploadBytes(r, bannerFile);
-        bannerUrl = await getDownloadURL(r);
+      let bannerUrl = bannerLink.trim() || null;
+      if (bannerFile && !bannerUrl) {
+        try {
+          const r = ref(storage, `banners/${Date.now()}_${bannerFile.name}`);
+          await uploadBytes(r, bannerFile);
+          bannerUrl = await getDownloadURL(r);
+        } catch (upErr) {
+          toast('Banner upload not available, saved without image. Paste an image link instead.');
+        }
       }
       const nums = ['entryFee', 'prizePool', 'prize1', 'prize2', 'prize3', 'killPrize', 'maxSlots'];
-      const data = { ...f, name: f.name.trim(), bannerUrl, registeredPlayers: [], createdAt: serverTimestamp() };
+      const data = { ...f, name: f.name.trim(), bannerUrl, published: publishRef.current, registeredPlayers: [], createdAt: serverTimestamp() };
       nums.forEach((k) => { data[k] = Number(f[k]) || 0; });
       await addDoc(collection(db, 'tournaments'), data);
-      toast.success('Tournament created');
+      toast.success(publishRef.current ? 'Published, now live in the app' : 'Saved as draft');
       navigate('/admin/manage');
     } catch (err) {
       console.error(err);
@@ -118,6 +125,7 @@ const CreateTournament = () => {
             )}
             <input type="file" accept="image/*" onChange={onBanner} className="hidden" />
           </label>
+          <Field label="Or paste an image link (recommended)"><input className="field" placeholder="https://.../banner.jpg" value={bannerLink} onChange={(e) => { setBannerLink(e.target.value); setPreview(e.target.value || null); }} /></Field>
         </Section>
 
         <Section n={4} title="Room">
@@ -134,7 +142,8 @@ const CreateTournament = () => {
 
         <div className="py-8 flex justify-end gap-3">
           <button type="button" onClick={() => navigate(-1)} className="btn btn-light">Cancel</button>
-          <button type="submit" disabled={saving} className="btn btn-dark">{saving ? 'Saving…' : 'Publish tournament'}</button>
+          <button type="submit" disabled={saving} onClick={() => { publishRef.current = false; }} className="btn btn-light">Save as draft</button>
+          <button type="submit" disabled={saving} onClick={() => { publishRef.current = true; }} className="btn btn-dark">{saving ? 'Saving…' : 'Publish now'}</button>
         </div>
       </form>
     </div>

@@ -6,6 +6,7 @@ import { FiCopy, FiLock } from 'react-icons/fi';
 import { db } from '../firebase/config';
 import { useAuth } from '../context/AuthContext';
 import { StatusTag, rupees } from '../components/ui';
+import { isAdminUser } from '../lib/admin';
 
 const RAZORPAY_KEY = process.env.REACT_APP_RAZORPAY_KEY_ID;
 
@@ -25,7 +26,7 @@ const TournamentDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const { currentUser } = useAuth();
+  const { currentUser, userProfile } = useAuth();
   const [t, setT] = useState(null);
   const [loading, setLoading] = useState(true);
   const [paying, setPaying] = useState(false);
@@ -34,13 +35,13 @@ const TournamentDetail = () => {
     (async () => {
       try {
         const snap = await getDoc(doc(db, 'tournaments', id));
-        if (snap.exists()) setT({ id: snap.id, ...snap.data() });
+        if (snap.exists() && (snap.data().published !== false || isAdminUser(currentUser, userProfile))) setT({ id: snap.id, ...snap.data() });
       } catch (e) {
         toast.error('Could not load this match');
       }
       setLoading(false);
     })();
-  }, [id]);
+  }, [id, currentUser, userProfile]);
 
   const hasJoined = !!(currentUser && t?.registeredPlayers?.includes(currentUser.uid));
 

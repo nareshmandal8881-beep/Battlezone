@@ -45,6 +45,15 @@ const ManageTournaments = () => {
     } catch (e) { toast.error('Delete failed'); }
   };
 
+  const togglePublish = async (t) => {
+    const published = t.published === false;
+    try {
+      await updateDoc(doc(db, 'tournaments', t.id), { published });
+      setList((p) => p.map((x) => (x.id === t.id ? { ...x, published } : x)));
+      toast(published ? 'Published, players can see it now' : 'Moved back to draft');
+    } catch (e) { toast.error('Update failed'); }
+  };
+
   const setStatus = async (id, status) => {
     try {
       await updateDoc(doc(db, 'tournaments', id), { status });
@@ -102,7 +111,7 @@ const ManageTournaments = () => {
           <table className="w-full min-w-[760px] text-[14px]">
             <thead>
               <tr className="border-b border-ink text-left">
-                {['Name', 'Game', 'When', 'Status', 'Players', 'Entry / Prize', ''].map((h) => (
+                {['Name', 'Game', 'When', 'In app', 'Status', 'Players', 'Entry / Prize', ''].map((h) => (
                   <th key={h} className="eyebrow font-normal py-2">{h}</th>
                 ))}
               </tr>
@@ -113,6 +122,11 @@ const ManageTournaments = () => {
                   <td className="py-3 font-semibold max-w-[220px] truncate">{t.name}</td>
                   <td className="py-3">{t.game}</td>
                   <td className="py-3 num text-[12px] text-muted">{t.date}<br />{t.time}</td>
+                  <td className="py-3">
+                    <button onClick={() => togglePublish(t)} className={`tag press ${t.published === false ? 'border-line text-muted' : 'border-win text-win'}`}>
+                      {t.published === false ? 'Draft: Publish' : 'Published'}
+                    </button>
+                  </td>
                   <td className="py-3">
                     <select value={t.status || 'upcoming'} onChange={(e) => setStatus(t.id, e.target.value)} className="field h-8 text-[12px] w-auto">
                       <option value="upcoming">Open</option><option value="live">Live</option><option value="completed">Ended</option>
@@ -129,7 +143,7 @@ const ManageTournaments = () => {
                   </td>
                 </tr>
               ))}
-              {list.length === 0 && <tr><td colSpan={7} className="py-10 text-center text-muted">No tournaments yet.</td></tr>}
+              {list.length === 0 && <tr><td colSpan={8} className="py-10 text-center text-muted">No tournaments yet.</td></tr>}
             </tbody>
           </table>
         )}

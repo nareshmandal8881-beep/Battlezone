@@ -8,8 +8,8 @@ import { Empty } from '../components/ui';
 import { DownloadAppButton, DownloadAppStrip } from '../components/DownloadApp';
 import { useAppLayout } from '../lib/layout';
 import AppHome from './AppHome';
+import { useGames, isPublished } from '../lib/games';
 
-const GAMES = ['BGMI', 'PUBG', 'Free Fire', 'COD', 'Valorant', 'Custom'];
 
 const STEPS = [
   ['Sign up', 'Email or Google. Takes about twenty seconds.'],
@@ -22,6 +22,7 @@ const Home = () => (useAppLayout() ? <AppHome /> : <WebHome />);
 
 const WebHome = () => {
   const { currentUser } = useAuth();
+  const games = useGames();
   const [tournaments, setTournaments] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -30,7 +31,7 @@ const WebHome = () => {
       try {
         const q = query(collection(db, 'tournaments'), orderBy('createdAt', 'desc'), limit(6));
         const snap = await getDocs(q);
-        setTournaments(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+        setTournaments(snap.docs.map((d) => ({ id: d.id, ...d.data() })).filter(isPublished));
       } catch (e) {
         console.error(e);
       }
@@ -67,8 +68,8 @@ const WebHome = () => {
       {/* Game strip */}
       <section className="border-b border-ink overflow-x-auto">
         <div className="flex min-w-max">
-          {GAMES.map((g) => (
-            <Link key={g} to={`/tournaments?game=${encodeURIComponent(g)}`}
+          {games.map(({ name: g }) => (
+            <Link key={g} to={g === 'Ludo' ? '/ludo' : `/tournaments?game=${encodeURIComponent(g)}`}
               className="px-6 sm:px-8 py-4 border-r border-line text-[15px] font-semibold hover:bg-ink hover:text-white transition-colors">
               {g}
             </Link>

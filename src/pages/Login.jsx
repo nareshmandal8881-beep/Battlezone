@@ -5,11 +5,12 @@ import { FiEye, FiEyeOff } from 'react-icons/fi';
 import { useAuth, authErrorMessage } from '../context/AuthContext';
 import AuthShell, { GoogleIcon, Divider } from '../components/AuthShell';
 
-const Login = () => {
+// `admin` → the hidden /admin/login screen (not linked anywhere for players).
+const Login = ({ admin = false }) => {
   const { currentUser, login, googleSignIn, resetPassword } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const next = location.state?.from || '/';
+  const next = admin ? '/admin' : location.state?.from || '/';
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -59,7 +60,7 @@ const Login = () => {
   };
 
   return (
-    <AuthShell kicker="Welcome back" title="Log in">
+    <AuthShell kicker={admin ? 'Restricted area' : 'Welcome back'} title={admin ? 'Admin login' : 'Log in'}>
       <button type="button" onClick={handleGoogle} disabled={!!busy} className="btn btn-light w-full">
         <GoogleIcon /> {busy === 'google' ? 'Opening Google…' : 'Continue with Google'}
       </button>
@@ -96,9 +97,13 @@ const Login = () => {
         </button>
       </form>
 
-      <p className="text-[14px] text-muted mt-6">
-        New here? <Link to="/register" state={location.state} className="text-ink font-semibold underline underline-offset-2">Create an account</Link>
-      </p>
+      {admin ? (
+        <p className="text-[13px] text-muted mt-6">Only admin accounts can open the admin panel. Players are sent to the home page.</p>
+      ) : (
+        <p className="text-[14px] text-muted mt-6">
+          New here? <Link to="/register" state={location.state} className="text-ink font-semibold underline underline-offset-2">Create an account</Link>
+        </p>
+      )}
     </AuthShell>
   );
 };
