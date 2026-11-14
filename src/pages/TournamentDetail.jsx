@@ -8,7 +8,8 @@ import { useAuth } from '../context/AuthContext';
 import { StatusTag, rupees } from '../components/ui';
 import { isAdminUser } from '../lib/admin';
 
-const RAZORPAY_KEY = process.env.REACT_APP_RAZORPAY_KEY_ID;
+// Public Key ID only. Never put the Key Secret in app code.
+const RAZORPAY_KEY = process.env.REACT_APP_RAZORPAY_KEY_ID || 'rzp_live_U06RvXvCE0EA53';
 
 const DEFAULT_RULES = `1. Register before the match starts.
 2. Play only from the account you registered with.

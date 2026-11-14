@@ -164,3 +164,44 @@ html.is-app input, html.is-app textarea { user-select: text; -webkit-user-select
 
 @keyframes bell-ring { 0%,60%,100% { transform: rotate(0); } 10%,30% { transform: rotate(14deg); } 20%,40% { transform: rotate(-14deg); } }
 .bell-ring { animation: bell-ring 2.2s ease-in-out infinite; transform-origin: 50% 10%; }
+
+/* ---------- ludo v4: casual mobile-game look ---------- */
+.ludo-bg { background:
+  radial-gradient(circle at 20% 15%, rgba(255,255,255,.10) 0 2px, transparent 3px) 0 0 / 34px 34px,
+  linear-gradient(180deg, #5b7cff 0%, #3a4fe0 45%, #2a2fa8 100%); color: #fff; }
+.ludo-title { font-stretch: 78%; font-weight: 900; color: #fff; letter-spacing: .04em; text-shadow: 0 3px 0 #1d2386; }
+.ludo-card { background: rgba(255,255,255,.14); border: 2px solid rgba(255,255,255,.35); border-radius: 18px; color: #fff; transition: transform .12s, background .2s; }
+.ludo-card.on { background: #fff; color: #2a2fa8; border-color: #fff; box-shadow: 0 6px 0 #1d2386; }
+.ludo-card .sub { opacity: .7; }
+.ludo-start { border-radius: 18px; background: linear-gradient(180deg, #ffd84d, #ffb800); color: #3b2300 !important; border: 0; box-shadow: 0 6px 0 #c47e00, 0 10px 20px rgba(0,0,0,.25); }
+.ludo-start:active { transform: translateY(4px); box-shadow: 0 2px 0 #c47e00; }
+.ludo-icon-btn { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 14px; background: rgba(255,255,255,.2); border: 2px solid rgba(255,255,255,.45); font-weight: 900; color: #fff; box-shadow: 0 3px 0 rgba(0,0,0,.18); }
+.ludo-pill { padding: 6px 14px; border-radius: 999px; background: rgba(0,0,0,.22); border: 1.5px solid rgba(255,255,255,.3); font-size: 12px; font-weight: 800; letter-spacing: .04em; }
+.ludo-logo { width: 84px; height: 84px; display: grid; grid-template-columns: 1fr 1fr; gap: 5px; padding: 6px; border-radius: 22px; background: #fff; box-shadow: 0 7px 0 #1d2386; transform: rotate(-6deg); }
+.ludo-logo i { border-radius: 10px; }
+.ludo-logo i:nth-child(1) { background: #ef3e4a; } .ludo-logo i:nth-child(2) { background: #22b85f; } .ludo-logo i:nth-child(3) { background: #3d7bff; } .ludo-logo i:nth-child(4) { background: #ffc21a; }
+
+.ludo-frame { padding: 6px; border-radius: 20px; background: #fff; box-shadow: 0 8px 0 #1d2386, 0 16px 30px rgba(0,0,0,.3); }
+.ludo-board { border-radius: 14px; background: #fff; }
+.ludo-base { background: var(--c); }
+.ludo-base.on { animation: base-pulse 1.1s ease-in-out infinite; z-index: 1; }
+@keyframes base-pulse { 0%,100% { filter: brightness(1); } 50% { filter: brightness(1.15); } }
+.ludo-yard { position: absolute; inset: 14%; border-radius: 22%; background: #fff; box-shadow: inset 0 -4px 0 rgba(0,0,0,.08); }
+.ludo-slot { position: absolute; width: 19%; height: 19%; border-radius: 9999px; transform: translate(-50%,-50%);
+  background: var(--c); box-shadow: inset 0 -3px 0 rgba(0,0,0,.2), inset 0 0 0 4px rgba(255,255,255,.35); }
+.ludo-cell { display: grid; place-items: center; background: #fff; box-shadow: inset 0 0 0 .5px #cfd3e6; }
+.ludo-cell.tint { background: var(--c); box-shadow: inset 0 0 0 .5px rgba(0,0,0,.12); }
+.ludo-center { display: grid; place-items: center; }
+
+.pawn { transform: translate(-50%, -80%); transition: left .14s linear, top .14s linear, width .2s, height .2s; background: none; border: 0; padding: 0; filter: drop-shadow(0 2px 1px rgba(0,0,0,.25)); }
+.pawn-movable { animation: pawn-hop .6s ease-in-out infinite; cursor: pointer; filter: drop-shadow(0 0 5px #fff) drop-shadow(0 0 2px #fff); }
+@keyframes pawn-hop { 0%,100% { transform: translate(-50%, -80%); } 50% { transform: translate(-50%, -102%); } }
+
+.dice3d { border-radius: 14px; background: #fff; border: 0; box-shadow: 0 5px 0 #c9cde3, 0 8px 14px rgba(0,0,0,.25); }
+.dice3d.dice-ready { animation: dice-bounce .9s ease-in-out infinite; box-shadow: 0 5px 0 #c9cde3, 0 0 0 4px var(--ring), 0 8px 14px rgba(0,0,0,.25); }
+@keyframes dice-bounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+
+.player-chip { width: 46px; height: 46px; border-radius: 14px; display: grid; place-items: center; flex-shrink: 0; color: #fff; font-weight: 900;
+  background: linear-gradient(160deg, color-mix(in srgb, var(--c) 70%, #fff), var(--c)); border: 3px solid #fff; box-shadow: 0 4px 0 rgba(0,0,0,.2); opacity: .75; transition: all .2s; }
+.player-chip.on { opacity: 1; transform: scale(1.07); box-shadow: 0 4px 0 rgba(0,0,0,.2), 0 0 0 3px var(--c); }
+.ludo-status { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 16px; font-weight: 800; font-size: 14px; background: rgba(0,0,0,.2); border: 1.5px solid rgba(255,255,255,.3); }

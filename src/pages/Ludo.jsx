@@ -6,10 +6,10 @@ import { play, isMuted, setMuted } from '../lib/sound';
 /* ---------------- board geometry (15 × 15 grid) ---------------- */
 const COLORS = ['red', 'green', 'yellow', 'blue']; // clockwise turn order
 const META = {
-  red: { name: 'Red', hex: '#e23b3b', soft: '#fde3e3', start: 0 },
-  green: { name: 'Green', hex: '#1fa45a', soft: '#ddf5e7', start: 13 },
-  yellow: { name: 'Yellow', hex: '#f5b301', soft: '#fff3cf', start: 26 },
-  blue: { name: 'Blue', hex: '#2f6fe4', soft: '#e0eafc', start: 39 },
+  red: { name: 'Red', hex: '#ef3e4a', dark: '#a3121c', soft: '#fde3e3', start: 0 },
+  green: { name: 'Green', hex: '#22b85f', dark: '#0d6b33', soft: '#ddf5e7', start: 13 },
+  yellow: { name: 'Yellow', hex: '#ffc21a', dark: '#b07800', soft: '#fff3cf', start: 26 },
+  blue: { name: 'Blue', hex: '#3d7bff', dark: '#1641a8', soft: '#e0eafc', start: 39 },
 };
 
 // 52 shared squares, clockwise, starting at Red's start square.
@@ -82,67 +82,120 @@ const chooseMove = (state, color, d) => {
 };
 
 /* ---------------- UI pieces ---------------- */
-const Dice = ({ value, rolling, onClick, active, color }) => (
+const CORNER = { red: 'tl', green: 'tr', yellow: 'br', blue: 'bl' };
+
+const Dice = ({ value, rolling, onClick, active, color, size = 64 }) => (
   <button type="button" onClick={onClick} disabled={!active}
-    className={`relative w-[72px] h-[72px] bg-white grid grid-cols-3 grid-rows-3 p-2.5 gap-0.5 border-4 transition-transform ${
-      rolling ? 'dice-roll' : ''} ${active ? 'dice-ready cursor-pointer' : 'opacity-80'}`}
-    style={{ borderColor: color, borderRadius: 14 }}
+    className={`dice3d grid grid-cols-3 grid-rows-3 ${rolling ? 'dice-roll' : ''} ${active ? 'dice-ready cursor-pointer' : ''}`}
+    style={{ width: size, height: size, padding: size * 0.15, '--ring': color }}
     aria-label={active ? 'Roll the dice' : `Dice shows ${value || 'nothing'}`}>
     {Array.from({ length: 9 }).map((_, k) => (
       <span key={k} className="grid place-items-center">
-        {value && PIPS[value].includes(k) && <span className="w-[11px] h-[11px] rounded-full bg-[#141414]" />}
+        {value && PIPS[value].includes(k) && (
+          <span className="rounded-full" style={{ width: size * 0.16, height: size * 0.16, background: value === 1 ? '#d42a2a' : '#1b1b1b', boxShadow: 'inset 0 1px 2px rgba(0,0,0,.6)' }} />
+        )}
       </span>
     ))}
   </button>
 );
 
+const Pawn = ({ color, id }) => (
+  <svg viewBox="0 0 40 54" className="w-full h-full overflow-visible" aria-hidden="true">
+    <defs>
+      <radialGradient id={`pg-${id}`} cx="35%" cy="28%" r="75%">
+        <stop offset="0" stopColor="#fff" stopOpacity=".85" />
+        <stop offset=".3" stopColor={META[color].hex} />
+        <stop offset="1" stopColor={META[color].dark} />
+      </radialGradient>
+    </defs>
+    <ellipse cx="20" cy="50" rx="12" ry="3.2" fill="rgba(0,0,0,.22)" />
+    <path d="M20 3.5a9 9 0 0 1 5.4 16.2C29 26 31 33 32.5 41H7.5C9 33 11 26 14.6 19.7A9 9 0 0 1 20 3.5z"
+      fill={`url(#pg-${id})`} stroke="#fff" strokeWidth="2.2" />
+    <ellipse cx="20" cy="42" rx="13.5" ry="5.2" fill={META[color].dark} stroke="#fff" strokeWidth="2.2" />
+    <ellipse cx="16.5" cy="9.5" rx="3" ry="2.2" fill="#fff" opacity=".75" />
+  </svg>
+);
+
+const PlayerPanel = ({ p, g, active, children }) => {
+  const home = g.tokens[p.color].filter((q) => q === LAST).length;
+  const corner = CORNER[p.color];
+  const right = corner === 'tr' || corner === 'br';
+  return (
+    <div className={`flex items-center gap-2 ${right ? 'flex-row-reverse text-right' : ''}`}>
+      <div className={`player-chip ${active ? 'on' : ''}`} style={{ '--c': META[p.color].hex }}>
+        <span className="text-[14px] leading-none">{p.label === 'You' ? 'YOU' : p.label.replace('Player ', 'P').replace('CPU ', 'C')}</span>
+      </div>
+      <div className="min-w-0">
+        <p className="text-[13px] font-bold truncate" style={{ color: '#fff', opacity: active ? 1 : 0.7 }}>{p.label}</p>
+        <div className={`flex gap-1 mt-1 ${right ? 'justify-end' : ''}`}>
+          {[0, 1, 2, 3].map((k) => (
+            <span key={k} className="w-2 h-2 rounded-full" style={{ background: k < home ? '#ffd84d' : 'rgba(255,255,255,.25)' }} />
+          ))}
+        </div>
+      </div>
+      <div className="w-[58px] h-[58px] grid place-items-center shrink-0">{children}</div>
+    </div>
+  );
+};
+
 const Setup = ({ onStart }) => {
   const [mode, setMode] = useState('cpu');
   const [count, setCount] = useState(2);
-  const opt = (on) => `h-12 border-2 font-bold text-[15px] press ${on ? 'bg-[#f5b301] border-[#f5b301] text-black' : 'border-white/30 text-white'}`;
+  const colorsFor = (n) => (n === 2 ? ['red', 'yellow'] : n === 3 ? ['red', 'green', 'yellow'] : COLORS);
 
   const start = () => {
-    const colors = count === 2 ? ['red', 'yellow'] : count === 3 ? ['red', 'green', 'yellow'] : COLORS;
-    onStart(colors.map((color, k) => ({
+    onStart(colorsFor(count).map((color, k) => ({
       color,
       ai: mode === 'cpu' && k > 0,
-      label: mode === 'cpu' ? (k === 0 ? 'You' : 'CPU') : `P${k + 1}`,
+      label: mode === 'cpu' ? (k === 0 ? 'You' : `CPU ${k}`) : `Player ${k + 1}`,
     })));
   };
 
+  const Card = ({ id, icon, title, sub }) => (
+    <button type="button" onClick={() => setMode(id)}
+      className={`ludo-card text-left p-4 press ${mode === id ? 'on' : ''}`}>
+      <span className="block font-mono text-[11px] tracking-widest sub">{icon}</span>
+      <span className="block font-black text-[17px] mt-1">{title}</span>
+      <span className="block text-[12px] sub mt-0.5">{sub}</span>
+    </button>
+  );
+
   return (
-    <div className="relative min-h-[calc(100vh-150px)] bg-black text-white overflow-hidden">
-      <img src="/auth-bg.jpg" alt="" className="absolute inset-0 w-full h-full object-cover opacity-50" />
-      <div className="relative max-w-md mx-auto px-5 pt-8 pb-10">
-        <div className="ludo-mini !w-20 !h-20 mx-auto" aria-hidden="true"><i /><i /><i /><i /></div>
-        <h1 className="text-center text-[56px] mt-4 rise">LUDO</h1>
-        <p className="text-center font-mono text-[11px] tracking-[0.25em] text-[#f5b301]">ROLL · RACE · CAPTURE</p>
+    <div className="ludo-bg min-h-[calc(100vh-56px)] -mb-[92px] pb-[110px]">
+      <div className="max-w-md mx-auto px-5 pt-8 pb-10">
+        <div className="ludo-logo mx-auto" aria-hidden="true"><i /><i /><i /><i /></div>
+        <h1 className="text-center text-[58px] mt-4 rise ludo-title">LUDO</h1>
+        <p className="text-center font-mono text-[11px] tracking-[0.3em] text-white/80">ROLL · RACE · CAPTURE</p>
 
-        <p className="font-mono text-[11px] tracking-[0.2em] text-white/60 mt-8 mb-2">MODE</p>
-        <div className="grid grid-cols-2 gap-2">
-          <button className={opt(mode === 'cpu')} onClick={() => setMode('cpu')}>Vs Computer</button>
-          <button className={opt(mode === 'pass')} onClick={() => setMode('pass')}>Pass &amp; Play</button>
+        <p className="font-mono text-[11px] tracking-[0.2em] text-white/70 mt-8 mb-2">CHOOSE MODE</p>
+        <div className="grid grid-cols-2 gap-3">
+          <Card id="cpu" icon="MODE 01" title="Vs Computer" sub="Play solo against bots" />
+          <Card id="pass" icon="MODE 02" title="Pass & Play" sub="Friends on one phone" />
         </div>
 
-        <p className="font-mono text-[11px] tracking-[0.2em] text-white/60 mt-6 mb-2">PLAYERS</p>
-        <div className="grid grid-cols-3 gap-2">
-          {[2, 3, 4].map((n) => <button key={n} className={opt(count === n)} onClick={() => setCount(n)}>{n}</button>)}
+        <p className="font-mono text-[11px] tracking-[0.2em] text-white/70 mt-6 mb-2">PLAYERS</p>
+        <div className="grid grid-cols-3 gap-3">
+          {[2, 3, 4].map((n) => (
+            <button key={n} type="button" onClick={() => setCount(n)} className={`ludo-card py-3 press ${count === n ? 'on' : ''}`}>
+              <span className="block font-black text-[22px]">{n}</span>
+              <span className="flex justify-center gap-1 mt-1">
+                {colorsFor(n).map((c) => <span key={c} className="w-2.5 h-2.5 rounded-full" style={{ background: META[c].hex }} />)}
+              </span>
+            </button>
+          ))}
         </div>
-        <p className="text-[13px] text-white/60 mt-3">
-          {mode === 'cpu' ? `You (Red) vs ${count - 1} computer player${count > 2 ? 's' : ''}.` : `${count} players take turns on this phone.`}
-        </p>
 
-        <button onClick={start} className="play-btn w-full h-14 mt-8 text-black font-black text-[18px] tracking-wider press" style={{ borderRadius: 0 }}>
-          START GAME
+        <button onClick={start} className="ludo-start w-full h-14 mt-8 text-black font-black text-[18px] tracking-wider press">
+          ▶ START GAME
         </button>
 
-        <details className="mt-8 text-[13px] text-white/75">
-          <summary className="cursor-pointer font-semibold text-white">How to play</summary>
+        <details className="mt-8 text-[13px] ludo-card p-4 text-white">
+          <summary className="cursor-pointer font-semibold">How to play</summary>
           <ul className="mt-2 space-y-1.5 list-disc pl-5">
             <li>Roll a 6 to bring a token out of base.</li>
-            <li>A 6, capturing a token, or reaching home gives another roll. Three 6s in a row lose the turn.</li>
-            <li>Land on an opponent to send it back to base — except on ★ and start squares.</li>
-            <li>You need the exact number to reach home. First to bring all 4 tokens home wins.</li>
+            <li>A 6, a capture or reaching home gives another roll. Three 6s in a row lose the turn.</li>
+            <li>Land on an opponent to send it home — except on ★ squares and start squares.</li>
+            <li>Exact roll needed to finish. First to bring all 4 home wins.</li>
           </ul>
         </details>
       </div>
@@ -320,114 +373,119 @@ const Ludo = () => {
   const cells = [];
   TRACK.forEach(([r, c], idx) => {
     const startColor = COLORS.find((col) => META[col].start === idx);
-    cells.push({ r, c, bg: startColor ? META[startColor].hex : '#fff', star: SAFE.includes(idx) && !startColor, arrow: !!startColor });
+    cells.push({ r, c, color: startColor, star: SAFE.includes(idx) && !startColor, start: !!startColor });
   });
-  Object.entries(HOME).forEach(([col, arr]) => arr.forEach(([r, c]) => cells.push({ r, c, bg: META[col].hex })));
+  Object.entries(HOME).forEach(([col, arr]) => arr.forEach(([r, c]) => cells.push({ r, c, color: col, lane: true })));
+
+  const byCorner = (corner) => g.players.find((p) => CORNER[p.color] === corner);
+  const panel = (corner) => {
+    const p = byCorner(corner);
+    if (!p) return <div />;
+    const active = p.color === cur.color && g.status === 'playing';
+    return (
+      <PlayerPanel p={p} g={g} active={active}>
+        {active ? (
+          <Dice value={g.dice} rolling={g.rolling} color={META[p.color].hex} size={54}
+            active={human && g.phase === 'roll' && g.status === 'playing'} onClick={roll} />
+        ) : null}
+      </PlayerPanel>
+    );
+  };
+
+  const status = g.msg || (cur.ai ? `${cur.label} is thinking…` : g.phase === 'roll' ? `${cur.label === 'You' ? 'Your' : `${cur.label}'s`} turn — tap the dice` : g.phase === 'move' ? 'Tap a glowing token' : '');
 
   return (
-    <div className="bg-[#111] min-h-[calc(100vh-150px)] text-white pb-6">
-      {/* players */}
-      <div className="grid gap-1.5 px-3 pt-3" style={{ gridTemplateColumns: `repeat(${g.players.length}, 1fr)` }}>
-        {g.players.map((p, k) => {
-          const home = g.tokens[p.color].filter((q) => q === LAST).length;
-          const on = k === g.turn && g.status === 'playing';
-          return (
-            <div key={p.color} className={`px-2 py-1.5 border-2 transition-all ${on ? 'scale-[1.03]' : 'opacity-60'}`}
-              style={{ borderColor: on ? META[p.color].hex : '#333', background: on ? `${META[p.color].hex}22` : 'transparent' }}>
-              <p className="text-[12px] font-bold flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full" style={{ background: META[p.color].hex }} />{p.label}
-              </p>
-              <p className="font-mono text-[10px] text-white/60">{home}/4 home</p>
-            </div>
-          );
-        })}
+    <div className="ludo-bg min-h-[calc(100vh-56px)] -mb-[92px] pb-[110px] pb-6">
+      {/* top bar */}
+      <div className="flex items-center justify-between px-3 pt-3">
+        <button onClick={() => { if (window.confirm('Quit this game?')) setG((ref.current = { status: 'setup' })); }}
+          className="ludo-icon-btn press" aria-label="Quit">✕</button>
+        <p className="ludo-pill">{g.players.some((x) => x.ai) ? 'VS COMPUTER' : 'PASS & PLAY'} · {g.players.length}P</p>
+        <button onClick={toggleMute} className="ludo-icon-btn press text-[17px]" aria-label={muted ? 'Sound on' : 'Mute'}>
+          {muted ? <FiVolumeX /> : <FiVolume2 />}
+        </button>
       </div>
 
-      {/* board */}
-      <div className="mx-auto mt-3 px-3" style={{ width: 'min(100%, 560px)' }}>
-        <div className="relative w-full aspect-square bg-white border-4 border-black select-none" style={{ boxShadow: '0 0 0 2px #f5b301, 0 12px 40px rgba(0,0,0,.5)' }}>
-          {COLORS.map((col) => {
-            const [r, c] = BASE_ORIGIN[col];
-            const active = cur.color === col && g.status === 'playing';
-            return (
-              <div key={col} className={`absolute ${active ? 'base-glow' : ''}`}
-                style={{ top: `${r * cell}%`, left: `${c * cell}%`, width: `${6 * cell}%`, height: `${6 * cell}%`, background: META[col].hex, '--glow': META[col].hex }}>
-                <div className="absolute bg-white" style={{ inset: '14%', borderRadius: 10 }} />
-                {BASE[col].map(([y, x], k) => (
-                  <span key={k} className="absolute rounded-full border-2"
-                    style={{ width: `${0.95 / 6 * 100}%`, height: `${0.95 / 6 * 100}%`, top: `${((y - r) / 6) * 100}%`, left: `${((x - c) / 6) * 100}%`,
-                      transform: 'translate(-50%,-50%)', background: META[col].soft, borderColor: META[col].hex }} />
-                ))}
+      <div className="mx-auto px-3 mt-3" style={{ width: 'min(100%, 560px)' }}>
+        <div className="grid grid-cols-2 gap-2 mb-2">{panel('tl')}{panel('tr')}</div>
+
+        {/* board */}
+        <div className="ludo-frame">
+          <div className="relative w-full aspect-square ludo-board select-none overflow-hidden">
+            {COLORS.map((col) => {
+              const [r, c] = BASE_ORIGIN[col];
+              const active = cur.color === col && g.status === 'playing';
+              return (
+                <div key={col} className={`absolute ludo-base ${active ? 'on' : ''}`}
+                  style={{ top: `${r * cell}%`, left: `${c * cell}%`, width: `${6 * cell}%`, height: `${6 * cell}%`, '--c': META[col].hex, '--d': META[col].dark }}>
+                  <div className="ludo-yard" />
+                  {BASE[col].map(([y, x], k) => (
+                    <span key={k} className="ludo-slot"
+                      style={{ top: `${((y - r) / 6) * 100}%`, left: `${((x - c) / 6) * 100}%`, '--c': META[col].hex }} />
+                  ))}
+                </div>
+              );
+            })}
+
+            {cells.map(({ r, c, color, star, start, lane }) => (
+              <div key={`${r}-${c}`} className={`absolute ludo-cell ${color ? 'tint' : ''}`}
+                style={{ top: `${r * cell}%`, left: `${c * cell}%`, width: `${cell}%`, height: `${cell}%`, '--c': color ? META[color].hex : undefined, '--d': color ? META[color].dark : undefined }}>
+                {(star || start) && <span className={start ? 'text-white' : 'text-[#b9bfdc]'} style={{ fontSize: 'min(3.2vw, 17px)' }}>{start ? '➤' : '★'}</span>}
+                {lane && null}
               </div>
-            );
-          })}
+            ))}
 
-          {cells.map(({ r, c, bg, star, arrow }) => (
-            <div key={`${r}-${c}`} className="absolute border border-[#1a1a1a]/25 grid place-items-center"
-              style={{ top: `${r * cell}%`, left: `${c * cell}%`, width: `${cell}%`, height: `${cell}%`, background: bg }}>
-              {star && <span className="text-[#9a968e] leading-none" style={{ fontSize: 'min(3.2vw, 18px)' }}>★</span>}
-              {arrow && <span className="text-white/90 leading-none" style={{ fontSize: 'min(3vw, 16px)' }}>★</span>}
+            <div className="absolute ludo-center" style={{ top: `${6 * cell}%`, left: `${6 * cell}%`, width: `${3 * cell}%`, height: `${3 * cell}%`,
+              background: `conic-gradient(from -45deg, ${META.green.hex} 0 90deg, ${META.yellow.hex} 90deg 180deg, ${META.blue.hex} 180deg 270deg, ${META.red.hex} 270deg 360deg)` }}>
+              <span className="text-white drop-shadow" style={{ fontSize: 'min(6vw, 30px)' }}>★</span>
             </div>
-          ))}
 
-          <div className="absolute" style={{ top: `${6 * cell}%`, left: `${6 * cell}%`, width: `${3 * cell}%`, height: `${3 * cell}%`,
-            background: `conic-gradient(from -45deg, ${META.green.hex} 0 90deg, ${META.yellow.hex} 90deg 180deg, ${META.blue.hex} 180deg 270deg, ${META.red.hex} 270deg 360deg)` }}>
-            <div className="absolute inset-[30%] bg-black/80 grid place-items-center rotate-45"><span className="-rotate-45 text-[#f5b301]" style={{ fontSize: 'min(3.4vw,18px)' }}>♛</span></div>
+            {placed.map((t) => {
+              const movable = g.phase === 'move' && t.color === cur.color && g.movable.includes(t.i) && human;
+              const w = cell * (t.small ? 0.7 : 0.92);
+              return (
+                <button key={`${t.color}${t.i}`} type="button" onClick={() => movable && moveToken(t.i)} disabled={!movable}
+                  className={`pawn absolute ${movable ? 'pawn-movable' : ''}`}
+                  style={{ left: `${(t.x / 15) * 100}%`, top: `${(t.y / 15) * 100}%`, width: `${w}%`, height: `${w * 1.35}%`,
+                    '--c': META[t.color].hex, zIndex: movable ? 40 : 10 + Math.round(t.y * 2) }}
+                  aria-label={`${META[t.color].name} token ${t.i + 1}`}>
+                  <Pawn color={t.color} id={`${t.color}${t.i}`} />
+                </button>
+              );
+            })}
           </div>
-
-          {placed.map((t) => {
-            const movable = g.phase === 'move' && t.color === cur.color && g.movable.includes(t.i) && human;
-            return (
-              <button key={`${t.color}${t.i}`} type="button" onClick={() => movable && moveToken(t.i)} disabled={!movable}
-                className={`token absolute rounded-full ${movable ? 'token-movable' : ''}`}
-                style={{ left: `${(t.x / 15) * 100}%`, top: `${(t.y / 15) * 100}%`, width: `${cell * (t.small ? 0.62 : 0.8)}%`, height: `${cell * (t.small ? 0.62 : 0.8)}%`,
-                  '--c': META[t.color].hex, zIndex: movable ? 30 : 10 + Math.round(t.y) }}
-                aria-label={`${META[t.color].name} token ${t.i + 1}`} />
-            );
-          })}
         </div>
-      </div>
 
-      {/* controls */}
-      <div className="flex items-center justify-center gap-5 mt-5 px-4">
-        <div className="text-right flex-1">
-          <p className="font-bold text-[16px]" style={{ color: curHex }}>{cur.ai ? `${cur.label} (${META[cur.color].name})` : cur.label === 'You' ? 'Your turn' : `${cur.label} — ${META[cur.color].name}`}</p>
-          <p className="text-[12px] text-white/60 min-h-[18px]">
-            {g.msg || (cur.ai ? 'Thinking…' : g.phase === 'roll' ? 'Tap the dice' : g.phase === 'move' ? 'Tap a glowing token' : '')}
-          </p>
-        </div>
-        <Dice value={g.dice} rolling={g.rolling} color={curHex} active={human && g.phase === 'roll' && g.status === 'playing'} onClick={roll} />
-        <div className="flex-1 flex flex-col items-start gap-2">
-          <button onClick={toggleMute} className="w-9 h-9 grid place-items-center border border-white/30 text-[18px] press" aria-label={muted ? 'Sound on' : 'Mute'}>
-            {muted ? <FiVolumeX /> : <FiVolume2 />}
-          </button>
-          <button onClick={() => { if (window.confirm('Quit this game?')) setG((ref.current = { status: 'setup' })); }}
-            className="text-[12px] font-semibold text-white/60 underline underline-offset-2">Quit</button>
+        <div className="grid grid-cols-2 gap-2 mt-2">{panel('bl')}{panel('br')}</div>
+
+        <div className="ludo-status mt-3" style={{ '--c': curHex }}>
+          <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: curHex }} />
+          <span className="truncate">{status}</span>
         </div>
       </div>
 
       {/* result */}
       {g.status === 'over' && (
         <div className="fixed inset-0 z-[60] bg-black/70 grid place-items-center p-6">
-          <div className="w-full max-w-sm bg-black border-2 border-[#f5b301] p-6 text-center rise" style={{ boxShadow: '0 0 40px rgba(245,179,1,.35)' }}>
-            <p className="text-[44px] leading-none">🏆</p>
-            <h2 className="text-[34px] mt-2" style={{ color: META[g.winners[0]].hex }}>
+          <div className="w-full max-w-sm bg-white text-[#1d2386] rounded-3xl p-6 text-center rise" style={{ boxShadow: '0 8px 0 #1d2386' }}>
+            <p className="font-mono text-[12px] tracking-[0.3em] text-muted">GAME OVER</p>
+            <h2 className="text-[38px] mt-2 font-black" style={{ color: META[g.winners[0]].hex }}>
               {g.players.find((p) => p.color === g.winners[0]).label === 'You' ? 'You win!' : `${g.players.find((p) => p.color === g.winners[0]).label} wins!`}
             </h2>
-            <ol className="mt-4 text-left border-t border-white/15">
+            <ol className="mt-4 text-left">
               {g.winners.map((col, k) => (
-                <li key={col} className="flex items-center gap-3 py-2 border-b border-white/15">
-                  <span className="num text-[#f5b301] w-5">{k + 1}</span>
+                <li key={col} className="flex items-center gap-3 py-2 border-b border-line">
+                  <span className="num w-5 font-bold">{k + 1}</span>
                   <span className="w-3 h-3 rounded-full" style={{ background: META[col].hex }} />
                   <span className="font-semibold">{g.players.find((p) => p.color === col).label}</span>
                 </li>
               ))}
             </ol>
             <div className="grid grid-cols-2 gap-2 mt-5">
-              <button onClick={() => startGame(g.players)} className="h-11 bg-[#f5b301] text-black font-bold press">Play again</button>
-              <button onClick={() => setG((ref.current = { status: 'setup' }))} className="h-11 border border-white/40 font-bold press">Change mode</button>
+              <button onClick={() => startGame(g.players)} className="ludo-start h-11 text-black font-bold press">Play again</button>
+              <button onClick={() => setG((ref.current = { status: 'setup' }))} className="h-11 rounded-2xl border-2 border-[#1d2386] font-bold press">Change mode</button>
             </div>
-            <Link to="/" className="block mt-4 text-[12px] text-white/60 underline">Back to home</Link>
+            <Link to="/" className="block mt-4 text-[12px] text-muted underline">Back to home</Link>
           </div>
         </div>
       )}
