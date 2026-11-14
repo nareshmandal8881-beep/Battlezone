@@ -73,6 +73,7 @@ const ManageTournaments = () => {
       status: edit.status,
       entryFee: Number(edit.entryFee) || 0,
       prizePool: Number(edit.prizePool) || 0,
+      bannerUrl: (edit.bannerUrl || '').trim() || null,
     };
     try {
       await updateDoc(doc(db, 'tournaments', edit.id), patch);
@@ -157,6 +158,16 @@ const ManageTournaments = () => {
         <Modal title="Edit tournament" onClose={() => setEdit(null)}>
           <div className="space-y-3">
             <div><label className="field-label">Name</label><input className="field" value={edit.name} onChange={setE('name')} /></div>
+            <div>
+              <label className="field-label">Banner image link (URL)</label>
+              <input className="field" placeholder="https://.../banner.jpg" value={edit.bannerUrl || ''} onChange={setE('bannerUrl')} />
+              {edit.bannerUrl && (
+                <div className="mt-2 aspect-[16/6] border border-line bg-[#f1efea] overflow-hidden">
+                  <img src={edit.bannerUrl} alt="Banner preview" className="w-full h-full object-cover" onLoad={(e) => { e.currentTarget.style.opacity = 1; }} onError={(e) => { e.currentTarget.style.opacity = 0.2; }} />
+                </div>
+              )}
+              <p className="text-[11px] text-muted mt-1">Right-click any image online → "Copy image address" → paste here. Leave empty to remove.</p>
+            </div>
             <div className="grid grid-cols-2 gap-3">
               <div><label className="field-label">Entry (₹)</label><input type="number" className="field num" value={edit.entryFee} onChange={setE('entryFee')} /></div>
               <div><label className="field-label">Prize pool (₹)</label><input type="number" className="field num" value={edit.prizePool} onChange={setE('prizePool')} /></div>

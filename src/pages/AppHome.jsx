@@ -114,9 +114,9 @@ const AppHome = () => {
       </section>
 
       <div className="flex gap-2 overflow-x-auto px-4 py-3 border-b border-line [scrollbar-width:none]">
-        {games.map(({ id, name, color }) => (
+        {games.map(({ id, name, color, imageUrl }) => (
           <Link key={id} to={name === 'Ludo' ? '/ludo' : `/tournaments?game=${encodeURIComponent(name)}`}
-            className="shrink-0 h-9 pl-2 pr-4 flex items-center gap-2 border border-ink text-[13px] font-semibold press"><span className="w-2.5 h-5" style={{ background: color }} />{name}</Link>
+            className="shrink-0 h-9 pl-2 pr-4 flex items-center gap-2 border border-ink text-[13px] font-semibold press">{imageUrl ? <img src={imageUrl} alt="" className="w-6 h-6 object-cover" /> : <span className="w-2.5 h-5" style={{ background: color }} />}{name}</Link>
         ))}
       </div>
 
