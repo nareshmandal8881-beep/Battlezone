@@ -83,7 +83,7 @@ const Settings = () => {
 
   return (
     <div className="pb-10">
-      {!isApp && <PageHead kicker="Account" title="Settings" />}
+      <PageHead kicker="Account" title="Settings" />
 
       <Link to="/profile" className="flex items-center gap-4 px-4 sm:px-8 py-5 border-b border-ink press">
         <Avatar name={name} src={userProfile?.photoURL || currentUser?.photoURL} size={60} />

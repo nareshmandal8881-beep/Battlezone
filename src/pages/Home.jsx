@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import TournamentCard from '../components/TournamentCard';
 import { Empty } from '../components/ui';
 import { DownloadAppButton, DownloadAppStrip } from '../components/DownloadApp';
-import { isApp } from '../lib/native';
+import { useAppLayout } from '../lib/layout';
 import AppHome from './AppHome';
 
 const GAMES = ['BGMI', 'PUBG', 'Free Fire', 'COD', 'Valorant', 'Custom'];
@@ -18,7 +18,7 @@ const STEPS = [
   ['Play & get paid', 'Results are posted after the match. Winnings go to your profile.'],
 ];
 
-const Home = () => (isApp ? <AppHome /> : <WebHome />);
+const Home = () => (useAppLayout() ? <AppHome /> : <WebHome />);
 
 const WebHome = () => {
   const { currentUser } = useAuth();

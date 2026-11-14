@@ -1,5 +1,5 @@
 import React from 'react';
-import { isApp } from '../lib/native';
+import { useAppLayout } from '../lib/layout';
 
 export const GoogleIcon = () => (
   <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
@@ -35,7 +35,7 @@ const AppAuth = ({ kicker, title, children }) => (
 );
 
 // Website version: dark panel on the left (desktop only), form on the right.
-const AuthShell = (props) => (isApp ? <AppAuth {...props} /> : <WebAuth {...props} />);
+const AuthShell = (props) => (useAppLayout() ? <AppAuth {...props} /> : <WebAuth {...props} />);
 
 const WebAuth = ({ kicker, title, children }) => (
   <div className="grid grid-cols-1 md:grid-cols-[1fr_1.1fr] min-h-[calc(100vh-180px)]">

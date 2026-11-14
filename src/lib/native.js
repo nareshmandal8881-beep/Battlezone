@@ -14,11 +14,11 @@ export const initNative = (navigate) => {
   if (!isApp) return () => {};
 
   document.documentElement.classList.add('is-app');
-  StatusBar.setStyle({ style: Style.Light }).catch(() => {});
-  StatusBar.setBackgroundColor({ color: '#ffffff' }).catch(() => {});
+  StatusBar.setStyle({ style: Style.Dark }).catch(() => {});
+  StatusBar.setBackgroundColor({ color: '#000000' }).catch(() => {});
 
   // Android hardware back button: go back inside the app, exit from the main tabs.
-  const ROOT_TABS = ['/', '/tournaments', '/leaderboard', '/settings', '/login'];
+  const ROOT_TABS = ['/', '/tournaments', '/leaderboard', '/settings', '/login', '/ludo'];
   const sub = CapApp.addListener('backButton', () => {
     if (ROOT_TABS.includes(window.location.pathname)) CapApp.exitApp();
     else navigate(-1);

@@ -4,6 +4,7 @@ import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { isFirebaseConfigured } from './firebase/config';
 import { isApp, initNative } from './lib/native';
+import { useAppLayout } from './lib/layout';
 
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
@@ -17,6 +18,7 @@ import Register from './pages/Register';
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';
 import Leaderboard from './pages/Leaderboard';
+import Ludo from './pages/Ludo';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import CreateTournament from './pages/admin/CreateTournament';
 import ManageTournaments from './pages/admin/ManageTournaments';
@@ -50,6 +52,7 @@ const routes = (
     <Route path="/tournaments" element={<AppGate><Tournaments /></AppGate>} />
     <Route path="/tournament/:id" element={<AppGate><TournamentDetail /></AppGate>} />
     <Route path="/leaderboard" element={<AppGate><Leaderboard /></AppGate>} />
+    <Route path="/ludo" element={<Ludo />} />
     <Route path="/login" element={<Login />} />
     <Route path="/register" element={<Register />} />
     <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
@@ -68,9 +71,10 @@ function AppRoutes() {
   useEffect(() => initNative(navigate), [navigate]);
   useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
 
+  const mobile = useAppLayout();
   const page = <div key={pathname} className="page-anim">{routes}</div>;
 
-  if (isApp) {
+  if (mobile) {
     return (
       <>
         <AppShell>{page}</AppShell>
@@ -95,7 +99,7 @@ function App() {
     <Router>
       <AuthProvider>
         <Toaster
-          position={isApp ? 'top-center' : 'bottom-center'}
+          position="top-center"
           toastOptions={{
             style: { background: '#121212', color: '#fff', borderRadius: 0, fontSize: '14px', padding: '10px 14px' },
           }}

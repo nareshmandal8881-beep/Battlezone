@@ -1,5 +1,5 @@
 import React from 'react';
-import { isApp } from '../lib/native';
+import { useAppLayout } from '../lib/layout';
 
 export const rupees = (n) => `₹${Number(n || 0).toLocaleString('en-IN')}`;
 
@@ -19,7 +19,8 @@ export const StatusTag = ({ status = 'upcoming' }) => {
 
 // In the Android app the top bar already shows the title, so only render the controls.
 export const PageHead = ({ kicker, title, children }) =>
-  isApp ? (
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  useAppLayout() ? (
     children ? <div className="px-4 pt-3 pb-3 border-b border-line [&>*]:w-full">{children}</div> : null
   ) : (
   <header className="wrap pt-10 pb-8 border-b border-ink">

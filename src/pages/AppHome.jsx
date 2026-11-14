@@ -60,24 +60,48 @@ const AppHome = () => {
 
   return (
     <div>
-      <section className="px-4 pt-5 pb-5 border-b border-ink">
-        <p className="eyebrow">{greeting()}</p>
-        <h2 className="text-[36px] truncate">{name}</h2>
-        <div className="grid grid-cols-3 border border-ink mt-4 shine">
-          {[['Wins', userProfile?.wins || 0], ['Kills', userProfile?.kills || 0], ['Won', rupees(userProfile?.totalEarnings)]].map(([k, v], i) => (
-            <div key={k} className={`px-3 py-2.5 ${i < 2 ? 'border-r border-ink' : ''}`}>
-              <p className="eyebrow">{k}</p>
-              <p className="num font-bold text-[18px] truncate">{v}</p>
+      <section className="relative overflow-hidden bg-black text-white px-4 pt-6 pb-5">
+        <img src="/splash-bg.jpg" alt="" className="absolute inset-0 w-full h-full object-cover object-[center_70%] opacity-60 bg-zoom" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/40 to-black/90" />
+        <div className="relative">
+          <p className="font-mono text-[11px] tracking-[0.2em] uppercase text-[#f5b301]">{currentUser ? greeting() : 'Welcome, soldier'}</p>
+          <h2 className="text-[38px] truncate rise">{currentUser ? name : 'Ready to drop?'}</h2>
+          {currentUser ? (
+            <div className="grid grid-cols-3 border border-[#f5b301]/60 bg-black/50 backdrop-blur-sm mt-4 shine">
+              {[['Wins', userProfile?.wins || 0], ['Kills', userProfile?.kills || 0], ['Won', rupees(userProfile?.totalEarnings)]].map(([k, v], i) => (
+                <div key={k} className={`px-3 py-2.5 ${i < 2 ? 'border-r border-[#f5b301]/40' : ''}`}>
+                  <p className="font-mono text-[10px] uppercase tracking-wider text-white/60">{k}</p>
+                  <p className="num font-bold text-[18px] truncate text-[#f5b301]">{v}</p>
+                </div>
+              ))}
             </div>
-          ))}
+          ) : (
+            <div className="flex gap-2 mt-4">
+              <Link to="/register" className="h-11 px-5 grid place-items-center bg-[#f5b301] text-black font-bold text-[14px] press">Create account</Link>
+              <Link to="/login" className="h-11 px-5 grid place-items-center border border-white/70 font-bold text-[14px] press">Log in</Link>
+            </div>
+          )}
         </div>
       </section>
 
-      <section className={`grid ${isAdmin ? 'grid-cols-4' : 'grid-cols-3'} border-b border-line stagger`}>
+      <Link to="/ludo" className="relative block overflow-hidden mx-4 mt-4 bg-black text-white press">
+        <img src="/auth-bg.jpg" alt="" className="absolute inset-0 w-full h-full object-cover opacity-70" />
+        <div className="relative flex items-center gap-4 p-4">
+          <div className="ludo-mini shrink-0" aria-hidden="true"><i /><i /><i /><i /></div>
+          <div className="flex-1 min-w-0">
+            <p className="font-mono text-[10px] tracking-[0.2em] text-[#f5b301]">NEW · FREE TO PLAY</p>
+            <p className="display text-[30px] leading-none">LUDO</p>
+            <p className="text-[12px] text-white/75 mt-1">Vs computer or pass &amp; play with 2–4 friends</p>
+          </div>
+          <span className="h-10 px-4 grid place-items-center bg-[#f5b301] text-black font-black text-[13px]">PLAY ▸</span>
+        </div>
+      </Link>
+
+      <section className={`grid ${isAdmin ? 'grid-cols-4' : 'grid-cols-3'} border-b border-line stagger mt-4 border-t`}>
         {[
           { to: '/tournaments', icon: FiAward, label: 'Matches' },
           { to: '/leaderboard', icon: FiBarChart2, label: 'Ranks' },
-          { to: '/profile', icon: FiUser, label: 'Profile' },
+          { to: currentUser ? '/profile' : '/login', icon: FiUser, label: 'Profile' },
           ...(isAdmin ? [{ to: '/admin', icon: FiShield, label: 'Admin' }] : []),
         ].map(({ to, icon: Icon, label }) => (
           <Link key={to} to={to} className="flex flex-col items-center gap-1.5 py-4 border-r border-line last:border-r-0 press">
