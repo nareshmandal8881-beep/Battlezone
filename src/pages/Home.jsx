@@ -43,7 +43,7 @@ const WebHome = () => {
   return (
     <div>
       {/* Hero */}
-      <section className="wrap pt-12 sm:pt-16 pb-10 border-b border-ink grid lg:grid-cols-[1.4fr_1fr] gap-10 items-end">
+      <section className="wrap pt-12 sm:pt-16 pb-10 border-b border-ink grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] gap-10 items-end">
         <div>
           <p className="eyebrow mb-5">Custom-room tournaments · India</p>
           <h1 className="text-[56px] sm:text-[88px] lg:text-[104px] uppercase page-anim">

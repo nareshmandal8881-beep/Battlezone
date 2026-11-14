@@ -21,8 +21,10 @@ export const Divider = () => (
 // App version: logo on black up top, form below — no website chrome.
 const AppAuth = ({ kicker, title, children }) => (
   <div className="min-h-screen flex flex-col bg-white">
-    <div className="bg-black flex flex-col items-center pt-10 pb-6">
-      <img src="/logo512.png" alt="BattleZone" className="w-44 h-44 object-contain splash-glow" />
+    <div className="relative bg-black flex flex-col items-center pt-8 pb-7 overflow-hidden">
+      <img src="/auth-bg.jpg" alt="" className="absolute inset-0 w-full h-full object-cover opacity-90 bg-zoom" />
+      <img src="/logo512.png" alt="BattleZone" className="relative w-40 h-40 object-contain logo-fade splash-glow" />
+      <p className="relative display text-white text-[30px] tracking-[0.06em] mt-1 rise" style={{ animationDelay: '.3s' }}>BATTLEZONE</p>
     </div>
     <div className="flex-1 px-5 pt-6 pb-10 -mt-3 bg-white border-t-4 border-[#f5b301] page-anim">
       <p className="eyebrow mb-1">{kicker}</p>
@@ -36,9 +38,10 @@ const AppAuth = ({ kicker, title, children }) => (
 const AuthShell = (props) => (isApp ? <AppAuth {...props} /> : <WebAuth {...props} />);
 
 const WebAuth = ({ kicker, title, children }) => (
-  <div className="grid md:grid-cols-[1fr_1.1fr] min-h-[calc(100vh-180px)]">
-    <aside className="hidden md:flex flex-col justify-between bg-black text-white p-10">
-      <img src="/logo192.png" alt="BattleZone" className="w-24 h-24 object-cover" />
+  <div className="grid grid-cols-1 md:grid-cols-[1fr_1.1fr] min-h-[calc(100vh-180px)]">
+    <aside className="hidden md:flex flex-col justify-between bg-black text-white p-10 relative overflow-hidden"
+      style={{ backgroundImage: 'linear-gradient(rgba(0,0,0,.55),rgba(0,0,0,.75)), url(/auth-bg.jpg)', backgroundSize: 'cover', backgroundPosition: 'center' }}>
+      <img src="/logo192.png" alt="BattleZone" className="w-24 h-24 object-cover logo-fade" />
       <div>
         <p className="display text-[64px] leading-[0.95]">Your slot.<br />Your room.<br /><span className="text-accent">Your win.</span></p>
         <ul className="mt-8 space-y-2 text-[14px] text-[#cfccc4]">

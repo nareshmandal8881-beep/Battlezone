@@ -8,3 +8,6 @@ google-services (1).json
 src/buildInfo.json
 public/version.json
 !apk/BattleZone.apk
+splash screen/shot-*
+splash screen/crop-*
+splash screen/preview-*

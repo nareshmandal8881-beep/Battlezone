@@ -151,7 +151,7 @@ const TournamentDetail = () => {
         <p className="num text-muted mt-3">{t.date}{t.time && ` · ${t.time}`}</p>
       </header>
 
-      <div className="grid lg:grid-cols-[1fr_360px]">
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px]">
         <div className="lg:border-r border-ink">
           {/* Room */}
           {hasJoined && (
