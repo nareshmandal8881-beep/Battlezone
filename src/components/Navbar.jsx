@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { FiMenu, FiX } from 'react-icons/fi';
+import { FiMenu, FiX, FiBell } from 'react-icons/fi';
+import { useNotifications } from '../lib/notify';
 import { useAuth } from '../context/AuthContext';
 import { Avatar } from './ui';
 import { DownloadAppButton } from './DownloadApp';
@@ -30,6 +31,7 @@ const Navbar = () => {
   const { currentUser, userProfile, logout } = useAuth();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+  const { unread } = useNotifications();
 
   const handleLogout = async () => {
     await logout();
@@ -54,6 +56,10 @@ const Navbar = () => {
         </div>
 
         <div className="hidden md:flex items-center gap-3">
+          <Link to="/notifications" className="relative w-9 h-9 grid place-items-center text-[19px] hover:text-accent" aria-label="Notifications">
+            <FiBell />
+            {unread > 0 && <span className="absolute -top-0.5 -right-0.5 min-w-[17px] h-[17px] px-1 rounded-full bg-live text-white text-[10px] font-bold grid place-items-center">{unread > 9 ? '9+' : unread}</span>}
+          </Link>
           <DownloadAppButton className="text-[14px] font-medium inline-flex items-center gap-1.5 hover:underline underline-offset-4 px-1" label="App" />
           {currentUser ? (
             <>

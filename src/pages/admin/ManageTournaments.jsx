@@ -4,6 +4,7 @@ import { collection, getDocs, getDoc, deleteDoc, doc, updateDoc, query, orderBy 
 import toast from 'react-hot-toast';
 import { db } from '../../firebase/config';
 import { PageHead, Avatar, rupees } from '../../components/ui';
+import { sendNotification } from '../../lib/notify';
 
 const Modal = ({ title, onClose, children }) => (
   <div className="fixed inset-0 z-50 bg-black/40 grid place-items-center p-4" onClick={onClose}>
@@ -51,6 +52,7 @@ const ManageTournaments = () => {
       await updateDoc(doc(db, 'tournaments', t.id), { published });
       setList((p) => p.map((x) => (x.id === t.id ? { ...x, published } : x)));
       toast(published ? 'Published, players can see it now' : 'Moved back to draft');
+      if (published) sendNotification({ title: `New tournament: ${t.name}`, body: `${t.game} · ${t.date} ${t.time} · Prize ${rupees(t.prizePool)} · Entry ${t.entryFee ? rupees(t.entryFee) : 'free'}`, link: `/tournament/${t.id}` }).catch(() => {});
     } catch (e) { toast.error('Update failed'); }
   };
 
@@ -58,6 +60,8 @@ const ManageTournaments = () => {
     try {
       await updateDoc(doc(db, 'tournaments', id), { status });
       setList((p) => p.map((t) => (t.id === id ? { ...t, status } : t)));
+      const t = list.find((x) => x.id === id);
+      if (status === 'live' && t && t.published !== false) sendNotification({ title: `LIVE now: ${t.name}`, body: 'Room ID & password are up. Open the match page and join.', link: `/tournament/${id}` }).catch(() => {});
     } catch (e) { toast.error('Update failed'); }
   };
 

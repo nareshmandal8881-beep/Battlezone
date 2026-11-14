@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { FiHome, FiAward, FiBarChart2, FiSettings, FiChevronLeft, FiUser } from 'react-icons/fi';
+import { FiHome, FiAward, FiBarChart2, FiSettings, FiChevronLeft, FiUser, FiBell } from 'react-icons/fi';
+import { useNotifications } from '../lib/notify';
 import { useAuth } from '../context/AuthContext';
 import { Avatar } from './ui';
 
@@ -15,6 +16,8 @@ const TITLES = {
   '/admin/create': 'New tournament',
   '/admin/manage': 'Manage',
   '/admin/games': 'Games',
+  '/admin/notify': 'Notify',
+  '/notifications': 'Notifications',
 };
 
 const ROOT = ['/', '/tournaments', '/leaderboard', '/settings', '/ludo'];
@@ -39,6 +42,7 @@ const AppShell = ({ children }) => {
   const { currentUser, userProfile } = useAuth();
   const { pathname } = useLocation();
   const navigate = useNavigate();
+  const { unread } = useNotifications();
 
   if (pathname === '/login' || pathname === '/register') {
     return <div className="min-h-screen bg-white safe-top safe-bottom">{children}</div>;
@@ -60,6 +64,10 @@ const AppShell = ({ children }) => {
             </button>
           )}
           <h1 className="text-[24px] truncate flex-1">{title || <>BATTLE<span className="text-[#f5b301]">ZONE</span></>}</h1>
+          <Link to="/notifications" className="relative w-10 h-10 grid place-items-center text-[21px] press" aria-label="Notifications">
+            <FiBell className={unread ? 'bell-ring' : ''} />
+            {unread > 0 && <span className="absolute top-1 right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-live text-white text-[10px] font-bold grid place-items-center">{unread > 9 ? '9+' : unread}</span>}
+          </Link>
           {currentUser ? (
             <Link to="/profile" className="press"><Avatar name={name} src={userProfile?.photoURL || currentUser.photoURL} size={32} /></Link>
           ) : (

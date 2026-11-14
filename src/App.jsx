@@ -24,6 +24,9 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import CreateTournament from './pages/admin/CreateTournament';
 import ManageTournaments from './pages/admin/ManageTournaments';
 import ManageGames from './pages/admin/ManageGames';
+import SendNotification from './pages/admin/SendNotification';
+import Notifications from './pages/Notifications';
+import { initNotificationTaps, useNotifications, askNotificationPermission } from './lib/notify';
 
 const ProtectedRoute = ({ children }) => {
   const { currentUser } = useAuth();
@@ -62,6 +65,8 @@ const routes = (
     <Route path="/admin/login" element={<Login admin />} />
     <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
     <Route path="/admin/games" element={<AdminRoute><ManageGames /></AdminRoute>} />
+    <Route path="/admin/notify" element={<AdminRoute><SendNotification /></AdminRoute>} />
+    <Route path="/notifications" element={<Notifications />} />
     <Route path="/admin/create" element={<AdminRoute><CreateTournament /></AdminRoute>} />
     <Route path="/admin/manage" element={<AdminRoute><ManageTournaments /></AdminRoute>} />
     <Route path="*" element={<Navigate to="/" replace />} />
@@ -73,6 +78,9 @@ function AppRoutes() {
   const { pathname } = useLocation();
 
   useEffect(() => initNative(navigate), [navigate]);
+  useEffect(() => { initNotificationTaps(navigate); }, [navigate]);
+  useEffect(() => { if (isApp) setTimeout(askNotificationPermission, 2500); }, []);
+  useNotifications(); // start the live listener so new announcements pop up anywhere
   useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
 
   const mobile = useAppLayout();

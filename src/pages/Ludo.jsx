@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { FiVolume2, FiVolumeX } from 'react-icons/fi';
+import { play, isMuted, setMuted } from '../lib/sound';
 
 /* ---------------- board geometry (15 × 15 grid) ---------------- */
 const COLORS = ['red', 'green', 'yellow', 'blue']; // clockwise turn order
@@ -152,6 +154,8 @@ const Setup = ({ onStart }) => {
 const Ludo = () => {
   const [g, setG] = useState({ status: 'setup' });
   const ref = useRef(g);
+  const [muted, setMutedState] = useState(isMuted());
+  const toggleMute = () => { setMuted(!muted); setMutedState(!muted); if (muted) play('turn'); };
   const alive = useRef(true);
   useEffect(() => {
     alive.current = true;
@@ -183,6 +187,7 @@ const Ludo = () => {
     if (s.status !== 'playing' || s.phase !== 'roll') return;
     commit({ phase: 'busy', rolling: true, msg: '' });
     if (navigator.vibrate) navigator.vibrate(25);
+    play('roll');
     for (let k = 0; k < 7; k += 1) {
       commit({ dice: 1 + Math.floor(Math.random() * 6) });
       await sleep(65); // eslint-disable-line no-await-in-loop
@@ -191,6 +196,7 @@ const Ludo = () => {
     const color = s.players[s.turn].color;
     const sixes = d === 6 ? s.sixes + 1 : 0;
     commit({ dice: d, rolling: false, sixes });
+    play('dice');
 
     if (sixes === 3) {
       commit({ msg: 'Three sixes — turn lost' });
@@ -200,6 +206,7 @@ const Ludo = () => {
     const movable = ref.current.tokens[color].map((p, i) => (canMove(p, d) ? i : -1)).filter((i) => i >= 0);
     if (!movable.length) {
       commit({ msg: d === 6 ? 'No move possible' : 'No move — need a 6' });
+      play('nomove');
       await sleep(850);
       return nextTurn();
     }
@@ -222,11 +229,13 @@ const Ludo = () => {
     commit({ phase: 'busy', movable: [] });
 
     if (from === -1) {
+      play('out');
       setPos(color, i, 0);
       await sleep(220);
     } else {
       for (let k = 1; k <= d; k += 1) {
         setPos(color, i, from + k);
+        play('step', k);
         await sleep(150); // eslint-disable-line no-await-in-loop
       }
     }
@@ -246,16 +255,19 @@ const Ludo = () => {
       });
       if (captured) {
         if (navigator.vibrate) navigator.vibrate([40, 40, 60]);
+        play('capture');
         commit({ tokens });
       }
     }
 
     // finished?
+    if (to === LAST) play('home');
     let { winners } = ref.current;
     if (ref.current.tokens[color].every((q) => q === LAST)) winners = [...winners, color];
     const left = s.players.filter((p) => !winners.includes(p.color));
     if (left.length <= 1) {
       commit({ winners: [...winners, ...left.map((p) => p.color)], status: 'over', phase: 'done' });
+      play('win');
       return;
     }
     commit({ winners });
@@ -273,6 +285,7 @@ const Ludo = () => {
     if (g.status !== 'playing') return undefined;
     const p = g.players[g.turn];
     let t;
+    if (!p.ai && g.phase === 'roll') play('turn');
     if (p.ai && g.phase === 'roll') t = setTimeout(roll, 700);
     else if (g.phase === 'move') {
       const positions = g.movable.map((i) => g.tokens[p.color][i]);
@@ -384,7 +397,10 @@ const Ludo = () => {
           </p>
         </div>
         <Dice value={g.dice} rolling={g.rolling} color={curHex} active={human && g.phase === 'roll' && g.status === 'playing'} onClick={roll} />
-        <div className="flex-1">
+        <div className="flex-1 flex flex-col items-start gap-2">
+          <button onClick={toggleMute} className="w-9 h-9 grid place-items-center border border-white/30 text-[18px] press" aria-label={muted ? 'Sound on' : 'Mute'}>
+            {muted ? <FiVolumeX /> : <FiVolume2 />}
+          </button>
           <button onClick={() => { if (window.confirm('Quit this game?')) setG((ref.current = { status: 'setup' })); }}
             className="text-[12px] font-semibold text-white/60 underline underline-offset-2">Quit</button>
         </div>

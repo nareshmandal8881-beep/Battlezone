@@ -30,10 +30,11 @@ const AdminDashboard = () => {
   return (
     <div>
       <PageHead kicker="Admin" title="Dashboard">
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Link to="/admin/create" className="btn btn-dark">New tournament</Link>
           <Link to="/admin/manage" className="btn btn-light">Manage</Link>
           <Link to="/admin/games" className="btn btn-light">Games</Link>
+          <Link to="/admin/notify" className="btn btn-light">Notify</Link>
         </div>
       </PageHead>
 

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import {
-  FiUser, FiShield, FiShare2, FiRefreshCw, FiLock, FiLogOut, FiChevronRight, FiFileText, FiMail, FiDownload,
+  FiUser, FiShield, FiShare2, FiRefreshCw, FiLock, FiLogOut, FiChevronRight, FiFileText, FiMail, FiDownload, FiBell,
 } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
 import { Avatar, PageHead, rupees } from '../components/ui';
@@ -102,9 +102,11 @@ const Settings = () => {
         <Row icon={FiUser} label="Edit profile" hint="Name, photo, match history, payments" to="/profile" />
         {hasPassword && <Row icon={FiLock} label="Change password" hint="We'll email you a reset link" onClick={changePassword} />}
         {isAdmin && <Row icon={FiShield} label="Admin panel" hint="Create matches, set room ID, see players" to="/admin" />}
+        {isAdmin && <Row icon={FiBell} label="Send notification" hint="Message every player" to="/admin/notify" />}
       </Group>
 
       <Group title="App">
+        <Row icon={FiBell} label="Notifications" hint="Announcements and match updates" to="/notifications" />
         <Row icon={FiRefreshCw} label={checking ? 'Checking…' : 'Check for updates'} hint={`Version ${new Date(buildInfo.builtAt).toLocaleDateString('en-IN')} · ${buildInfo.id.slice(-6)}`} onClick={checkUpdate} />
         <Row icon={FiShare2} label="Share BattleZone" hint="Invite your squad" onClick={onShare} />
         {!isApp && <Row icon={FiDownload} label="Download Android app" hint="APK · about 7 MB" href={APK_URL} />}

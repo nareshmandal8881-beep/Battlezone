@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 import { db, storage } from '../../firebase/config';
 import { PageHead } from '../../components/ui';
 import { useGames } from '../../lib/games';
+import { sendNotification } from '../../lib/notify';
 
 const MODES = ['Squad', 'Duo', 'Solo', 'TDM', 'Clash Squad'];
 const SLOT_OPTIONS = [25, 50, 100, 200];
@@ -63,7 +64,8 @@ const CreateTournament = () => {
       const nums = ['entryFee', 'prizePool', 'prize1', 'prize2', 'prize3', 'killPrize', 'maxSlots'];
       const data = { ...f, name: f.name.trim(), bannerUrl, published: publishRef.current, registeredPlayers: [], createdAt: serverTimestamp() };
       nums.forEach((k) => { data[k] = Number(f[k]) || 0; });
-      await addDoc(collection(db, 'tournaments'), data);
+      const created = await addDoc(collection(db, 'tournaments'), data);
+      if (data.published) sendNotification({ title: `New tournament: ${data.name}`, body: `${data.game} · ${data.date} ${data.time} · Prize ₹${data.prizePool} · Entry ${data.entryFee ? `₹${data.entryFee}` : 'free'}`, link: `/tournament/${created.id}` }).catch(() => {});
       toast.success(publishRef.current ? 'Published, now live in the app' : 'Saved as draft');
       navigate('/admin/manage');
     } catch (err) {
