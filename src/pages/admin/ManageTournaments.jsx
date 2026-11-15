@@ -13,7 +13,7 @@ const Modal = ({ title, onClose, children }) => (
         <h3 className="text-[22px]">{title}</h3>
         <button onClick={onClose} className="text-[13px] underline">Close</button>
       </div>
-      <div className="p-5">{children}</div>
+      <div className="p-5 max-h-[78vh] overflow-y-auto">{children}</div>
     </div>
   </div>
 );
@@ -73,6 +73,10 @@ const ManageTournaments = () => {
       status: edit.status,
       entryFee: Number(edit.entryFee) || 0,
       prizePool: Number(edit.prizePool) || 0,
+      prize1: Number(edit.prize1) || 0,
+      prize2: Number(edit.prize2) || 0,
+      prize3: Number(edit.prize3) || 0,
+      killPrize: Number(edit.killPrize) || 0,
       bannerUrl: (edit.bannerUrl || '').trim() || null,
     };
     try {
@@ -171,6 +175,40 @@ const ManageTournaments = () => {
             <div className="grid grid-cols-2 gap-3">
               <div><label className="field-label">Entry (₹)</label><input type="number" className="field num" value={edit.entryFee} onChange={setE('entryFee')} /></div>
               <div><label className="field-label">Prize pool (₹)</label><input type="number" className="field num" value={edit.prizePool} onChange={setE('prizePool')} /></div>
+            </div>
+
+            {(() => {
+              const n = (v) => Number(v) || 0;
+              const split = n(edit.prize1) + n(edit.prize2) + n(edit.prize3);
+              const over = split > n(edit.prizePool);
+              const autoSplit = () => {
+                const pool = n(edit.prizePool);
+                const p1 = Math.round(pool * 0.5);
+                const p2 = Math.round(pool * 0.3);
+                setEdit((p) => ({ ...p, prize1: p1, prize2: p2, prize3: pool - p1 - p2 }));
+              };
+              return (
+                <div className="border border-line p-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="font-semibold text-[14px]">Prize split</p>
+                    <button type="button" onClick={autoSplit} className="btn btn-light btn-sm">Auto split 50/30/20</button>
+                  </div>
+                  <div className="grid grid-cols-4 gap-2">
+                    {[['prize1', '1st'], ['prize2', '2nd'], ['prize3', '3rd'], ['killPrize', 'Per kill']].map(([k, label]) => (
+                      <div key={k}>
+                        <label className="field-label !text-[12px]">{label} (₹)</label>
+                        <input type="number" min="0" className="field num !h-10 !px-2" value={edit[k] ?? ''} onChange={setE(k)} />
+                      </div>
+                    ))}
+                  </div>
+                  <p className={`text-[12px] mt-2 num ${over ? 'text-live font-semibold' : 'text-muted'}`}>
+                    1st + 2nd + 3rd = ₹{split} of ₹{n(edit.prizePool)} pool{over ? ' — more than the pool!' : ''}
+                  </p>
+                </div>
+              );
+            })()}
+
+            <div className="grid grid-cols-2 gap-3">
               <div><label className="field-label">Room ID</label><input className="field num" value={edit.roomId || ''} onChange={setE('roomId')} /></div>
               <div><label className="field-label">Password</label><input className="field num" value={edit.roomPassword || ''} onChange={setE('roomPassword')} /></div>
             </div>
