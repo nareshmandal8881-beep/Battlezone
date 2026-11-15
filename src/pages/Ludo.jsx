@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FiVolume2, FiVolumeX } from 'react-icons/fi';
 import { play, isMuted, setMuted } from '../lib/sound';
+import { showInterstitial } from '../lib/ads';
 
 /* ---------------- board geometry (15 × 15 grid) ---------------- */
 const COLORS = ['red', 'green', 'yellow', 'blue']; // clockwise turn order
@@ -332,6 +333,13 @@ const Ludo = () => {
       nextTurn();
     }
   };
+
+  // ad break after the result card has been seen for a moment
+  useEffect(() => {
+    if (g.status !== 'over') return undefined;
+    const t = setTimeout(showInterstitial, 2500);
+    return () => clearTimeout(t);
+  }, [g.status]);
 
   // computer turns + auto-move when there's only one sensible choice
   useEffect(() => {

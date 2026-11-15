@@ -1,4 +1,6 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { isApp } from '../lib/native';
+import { showBanner, hideBanner, NO_BANNER } from '../lib/ads';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { FiHome, FiAward, FiBarChart2, FiSettings, FiChevronLeft, FiUser, FiBell } from 'react-icons/fi';
 import { useNotifications } from '../lib/notify';
@@ -43,6 +45,8 @@ const AppShell = ({ children }) => {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const { unread } = useNotifications();
+  const bannerHere = isApp && !NO_BANNER.includes(pathname) && !pathname.startsWith('/admin');
+  useEffect(() => { if (bannerHere) showBanner(); else hideBanner(); }, [bannerHere]);
 
   if (pathname === '/login' || pathname === '/register') {
     return <div className="min-h-screen bg-white safe-top safe-bottom">{children}</div>;
@@ -77,7 +81,7 @@ const AppShell = ({ children }) => {
         <div className="h-[2px] bg-gradient-to-r from-transparent via-[#f5b301] to-transparent opacity-70" />
       </header>
 
-      <main className="flex-1 pb-[92px]">{children}</main>
+      <main className={`flex-1 ${bannerHere ? 'pb-[150px]' : 'pb-[92px]'}`}>{children}</main>
 
       <nav className="fixed bottom-0 inset-x-0 z-40 safe-bottom bg-black">
         <div className="h-[2px] bg-gradient-to-r from-transparent via-[#f5b301] to-transparent opacity-60" />
