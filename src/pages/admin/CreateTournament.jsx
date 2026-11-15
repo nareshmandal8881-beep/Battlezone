@@ -6,9 +6,9 @@ import toast from 'react-hot-toast';
 import { db, storage } from '../../firebase/config';
 import { PageHead } from '../../components/ui';
 import { useGames } from '../../lib/games';
+import ModeMapPicker from '../../components/ModeMapPicker';
 import { sendNotification } from '../../lib/notify';
 
-const MODES = ['Squad', 'Duo', 'Solo', 'TDM', 'Clash Squad'];
 const SLOT_OPTIONS = [25, 50, 100, 200];
 
 const Section = ({ n, title, children }) => (
@@ -34,7 +34,7 @@ const CreateTournament = () => {
   const [bannerFile, setBannerFile] = useState(null);
   const [preview, setPreview] = useState(null);
   const [f, setF] = useState({
-    name: '', game: 'BGMI', mode: 'Squad', map: 'Erangel', date: '', time: '',
+    name: '', game: 'BGMI', mode: 'Classic', map: 'Erangel', teamSize: 'Squad', date: '', time: '',
     entryFee: 50, prizePool: 1000, prize1: 500, prize2: 300, prize3: 150, killPrize: 10,
     maxSlots: 100, status: 'upcoming', roomId: '', roomPassword: '',
     rules: `1. Register before the match starts.\n2. Play only from the account you registered with.\n3. No hacks or teaming.\n4. Room ID and password are shared 10 minutes before start.\n5. Be in the room 5 minutes before start time.\n6. The admin's decision is final in disputes.`,
@@ -81,11 +81,7 @@ const CreateTournament = () => {
       <form onSubmit={submit} className="wrap">
         <Section n={1} title="Basics">
           <Field label="Name"><input className="field" placeholder="Sunday Squad Cup #12" value={f.name} onChange={set('name')} /></Field>
-          <div className="grid sm:grid-cols-3 gap-4">
-            <Field label="Game"><select className="field" value={f.game} onChange={set('game')}>{GAMES.map((g) => <option key={g}>{g}</option>)}</select></Field>
-            <Field label="Mode"><select className="field" value={f.mode} onChange={set('mode')}>{MODES.map((m) => <option key={m}>{m}</option>)}</select></Field>
-            <Field label="Map"><input className="field" value={f.map} onChange={set('map')} /></Field>
-          </div>
+          <ModeMapPicker value={f} games={GAMES} onChange={(v) => setF((p) => ({ ...p, ...v }))} />
           <div className="grid grid-cols-2 gap-4">
             <Field label="Date"><input type="date" className="field" value={f.date} onChange={set('date')} /></Field>
             <Field label="Start time"><input type="time" className="field" value={f.time} onChange={set('time')} /></Field>

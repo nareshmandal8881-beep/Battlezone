@@ -5,6 +5,9 @@ import toast from 'react-hot-toast';
 import { db } from '../../firebase/config';
 import { PageHead, Avatar, rupees } from '../../components/ui';
 import { sendNotification } from '../../lib/notify';
+import ModeMapPicker from '../../components/ModeMapPicker';
+import { normalise } from '../../lib/gameModes';
+import { useGames } from '../../lib/games';
 
 const Modal = ({ title, onClose, children }) => (
   <div className="fixed inset-0 z-50 bg-black/40 grid place-items-center p-4" onClick={onClose}>
@@ -24,6 +27,7 @@ const ManageTournaments = () => {
   const [edit, setEdit] = useState(null);
   const [roster, setRoster] = useState(null);
   const [players, setPlayers] = useState([]);
+  const gameNames = useGames({ all: true }).map((x) => x.name);
 
   useEffect(() => {
     (async () => {
@@ -77,6 +81,10 @@ const ManageTournaments = () => {
       prize2: Number(edit.prize2) || 0,
       prize3: Number(edit.prize3) || 0,
       killPrize: Number(edit.killPrize) || 0,
+      game: edit.game,
+      mode: edit.mode || '',
+      map: edit.map || '',
+      teamSize: edit.teamSize || '',
       bannerUrl: (edit.bannerUrl || '').trim() || null,
     };
     try {
@@ -145,7 +153,7 @@ const ManageTournaments = () => {
                   <td className="py-3 num">{rupees(t.entryFee)} / <b>{rupees(t.prizePool)}</b></td>
                   <td className="py-3">
                     <div className="flex gap-1.5 justify-end">
-                      <button onClick={() => setEdit({ ...t })} className="btn btn-light btn-sm">Edit</button>
+                      <button onClick={() => setEdit(normalise({ ...t }))} className="btn btn-light btn-sm">Edit</button>
                       <button onClick={() => openRoster(t)} className="btn btn-light btn-sm">Players</button>
                       <button onClick={() => remove(t)} className="btn btn-light btn-sm hover:!bg-live hover:!border-live">Delete</button>
                     </div>
@@ -162,6 +170,7 @@ const ManageTournaments = () => {
         <Modal title="Edit tournament" onClose={() => setEdit(null)}>
           <div className="space-y-3">
             <div><label className="field-label">Name</label><input className="field" value={edit.name} onChange={setE('name')} /></div>
+            <ModeMapPicker value={edit} games={gameNames} onChange={(v) => setEdit((p) => ({ ...p, ...v }))} />
             <div>
               <label className="field-label">Banner image link (URL)</label>
               <input className="field" placeholder="https://.../banner.jpg" value={edit.bannerUrl || ''} onChange={setE('bannerUrl')} />

@@ -5,7 +5,7 @@ import { StatusTag, rupees } from './ui';
 const TournamentCard = ({ tournament }) => {
   const {
     id, name, game, entryFee, prizePool, maxSlots = 0, registeredPlayers = [],
-    date, time, status = 'upcoming', bannerUrl, mode, map,
+    date, time, status = 'upcoming', bannerUrl, mode, map, teamSize,
   } = tournament;
 
   const joined = registeredPlayers.length;
@@ -26,7 +26,7 @@ const TournamentCard = ({ tournament }) => {
       </div>
 
       <div className="p-4">
-        <p className="eyebrow mb-1.5">{[game, mode, map].filter(Boolean).join(' · ')}</p>
+        <p className="eyebrow mb-1.5">{[game, mode, teamSize, map].filter(Boolean).join(' · ')}</p>
         <h3 className="text-[22px] mb-4 group-hover:underline underline-offset-4 decoration-2">{name}</h3>
 
         <dl className="grid grid-cols-2 border-y border-line">

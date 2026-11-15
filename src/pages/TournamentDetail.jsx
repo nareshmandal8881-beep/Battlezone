@@ -147,7 +147,7 @@ const TournamentDetail = () => {
       <header className="wrap pt-8 pb-8 border-b border-ink">
         <div className="flex items-center gap-3 mb-4">
           <StatusTag status={t.status} />
-          <span className="eyebrow">{[t.game, t.mode, t.map].filter(Boolean).join(' · ')}</span>
+          <span className="eyebrow">{[t.game, t.mode, t.teamSize, t.map].filter(Boolean).join(' · ')}</span>
         </div>
         <h1 className="text-[44px] sm:text-[64px] max-w-4xl">{t.name}</h1>
         <p className="num text-muted mt-3">{t.date}{t.time && ` · ${t.time}`}</p>

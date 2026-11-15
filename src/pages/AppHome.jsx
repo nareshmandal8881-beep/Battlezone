@@ -26,7 +26,7 @@ const MatchRow = ({ t }) => {
           : <span className="display text-[15px] text-[#bdb8ad] uppercase text-center leading-none px-1">{t.game}</span>}
       </div>
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 mb-0.5"><StatusTag status={t.status} /><span className="eyebrow truncate">{t.game} · {t.mode}</span></div>
+        <div className="flex items-center gap-2 mb-0.5"><StatusTag status={t.status} /><span className="eyebrow truncate">{[t.game, t.mode, t.teamSize, t.map].filter(Boolean).join(' · ')}</span></div>
         <p className="font-bold text-[15px] truncate">{t.name}</p>
         <p className="text-[12px] text-muted num mt-0.5">
           {t.entryFee ? rupees(t.entryFee) : 'Free'} entry · <b className="text-accent">{rupees(t.prizePool)}</b> · {joined}/{t.maxSlots}
