@@ -6,6 +6,7 @@ import { isFirebaseConfigured } from './firebase/config';
 import { isApp, initNative } from './lib/native';
 import { useAppLayout } from './lib/layout';
 import { isAdminUser } from './lib/admin';
+import { loadAdSense } from './lib/ads';
 
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
@@ -79,6 +80,7 @@ function AppRoutes() {
 
   useEffect(() => initNative(navigate), [navigate]);
   useEffect(() => { initNotificationTaps(navigate); }, [navigate]);
+  useEffect(() => { loadAdSense(); }, []);
   useEffect(() => { if (isApp) setTimeout(askNotificationPermission, 2500); }, []);
   useNotifications(); // start the live listener so new announcements pop up anywhere
   useEffect(() => { window.scrollTo(0, 0); }, [pathname]);

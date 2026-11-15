@@ -27,8 +27,8 @@
             android:grantUriPermissions="true">
             <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/file_paths" />
         </provider>
-        <!-- AdMob App ID. This is Google's TEST id: replace with your own ca-app-pub-...~... -->
-        <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-3940256099942544~3347511713"/>
+        <!-- AdMob App ID. BattleZone AdMob App ID -->
+        <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-2818671706434531~9474745234"/>
     </application>
 
     <!-- Permissions -->
