@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import buildInfo from '../buildInfo.json';
+import { reloadApp } from '../lib/native';
 
 const CHECK_EVERY_MS = 2 * 60 * 1000; // every 2 minutes
 
@@ -44,7 +45,7 @@ const UpdateBanner = () => {
       style={{ boxShadow: '4px 4px 0 #d9461a' }} role="status">
       <span className="text-[14px] flex-1">A new version of BattleZone is available.</span>
       <button onClick={() => setHidden(true)} className="text-[13px] text-[#bdb9b0] hover:text-white px-2 h-9">Later</button>
-      <button onClick={() => window.location.reload()} className="h-9 px-4 bg-white text-ink text-[13px] font-semibold hover:bg-accent hover:text-white">
+      <button onClick={reloadApp} className="h-9 px-4 bg-white text-ink text-[13px] font-semibold hover:bg-accent hover:text-white">
         Update
       </button>
     </div>

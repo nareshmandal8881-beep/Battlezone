@@ -6,7 +6,7 @@ import {
 } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
 import { Avatar, PageHead, rupees } from '../components/ui';
-import { isApp, shareApp } from '../lib/native';
+import { isApp, shareApp, reloadApp } from '../lib/native';
 import { APK_URL } from '../components/DownloadApp';
 import buildInfo from '../buildInfo.json';
 import { isAdminUser } from '../lib/admin';
@@ -51,7 +51,7 @@ const Settings = () => {
       const live = await res.json();
       if (live.id && live.id !== buildInfo.id && process.env.NODE_ENV === 'production') {
         toast('New version found — updating…');
-        setTimeout(() => window.location.reload(), 700);
+        setTimeout(reloadApp, 700);
       } else {
         toast.success("You're on the latest version");
       }

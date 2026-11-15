@@ -9,6 +9,12 @@ export const isApp = Capacitor.isNativePlatform();
 
 export const SITE_URL = 'https://battlezone-51952.web.app';
 
+// Reload to the newest version. Inside the app always reload the ad-free /app.html entry.
+export const reloadApp = () => {
+  if (isApp) window.location.replace('/app.html');
+  else window.location.reload();
+};
+
 // Called once on start-up inside the Android app.
 export const initNative = (navigate) => {
   if (!isApp) return () => {};

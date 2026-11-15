@@ -3,7 +3,7 @@
   "appName": "BattleZone",
   "webDir": "build",
   "server": {
-    "url": "https://battlezone-51952.web.app",
+    "url": "https://battlezone-51952.web.app/app.html",
     "allowNavigation": [
       "battlezone-51952.web.app",
       "battlezone-51952.firebaseapp.com"

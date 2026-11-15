@@ -28,7 +28,8 @@
     "prebuild": "node scripts/write-version.js",
     "build": "react-scripts build",
     "deploy": "npm run build && firebase deploy --only hosting,firestore:rules",
-    "test": "react-scripts test"
+    "test": "react-scripts test",
+    "postbuild": "node scripts/make-app-html.js"
   },
   "browserslist": {
     "production": [

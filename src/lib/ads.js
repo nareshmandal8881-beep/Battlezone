@@ -12,7 +12,6 @@ export const ADS = {
   BANNER_ID: 'ca-app-pub-2818671706434531/3753525593',
   // Add your Interstitial ad unit id here to turn on the full-screen ad after Ludo games.
   INTERSTITIAL_ID: '',
-  // Website (Google AdSense) — fill in after AdSense approval, e.g. 'ca-pub-1234567890123456'
   ADSENSE_CLIENT: 'ca-pub-2818671706434531',
 };
 
@@ -65,13 +64,4 @@ export const showInterstitial = async () => {
 // Pages where the banner would get in the way.
 export const NO_BANNER = ['/ludo', '/login', '/register', '/admin/login'];
 
-// Website only: Google AdSense Auto ads (Google picks the spots). Never inside the Android app.
-export const loadAdSense = () => {
-  if (isApp || !ADS.ADSENSE_CLIENT || document.getElementById('adsense-js')) return;
-  const s = document.createElement('script');
-  s.id = 'adsense-js';
-  s.async = true;
-  s.crossOrigin = 'anonymous';
-  s.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADS.ADSENSE_CLIENT}`;
-  document.head.appendChild(s);
-};
+// Website AdSense: the script tag lives in public/index.html; build/app.html (used by the app) has it removed.
