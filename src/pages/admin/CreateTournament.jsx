@@ -129,7 +129,7 @@ const CreateTournament = () => {
         </Section>
 
         <Section n={4} title="Room">
-          <p className="text-[13px] text-muted -mt-1">Players only see these after joining and when the match is Live.</p>
+          <p className="text-[13px] text-muted -mt-1">Only players who joined can see these, as soon as you save them.</p>
           <div className="grid grid-cols-2 gap-4">
             <Field label="Room ID"><input className="field num" value={f.roomId} onChange={set('roomId')} /></Field>
             <Field label="Password"><input className="field num" value={f.roomPassword} onChange={set('roomPassword')} /></Field>

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
-import { doc, getDoc, updateDoc, arrayUnion, addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { doc, onSnapshot, updateDoc, arrayUnion, addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import toast from 'react-hot-toast';
 import { FiCopy, FiLock } from 'react-icons/fi';
 import { db } from '../firebase/config';
@@ -32,16 +32,17 @@ const TournamentDetail = () => {
   const [loading, setLoading] = useState(true);
   const [paying, setPaying] = useState(false);
 
+  // Live listener: room ID / password, teams and player count update on screen the moment the admin saves them.
   useEffect(() => {
-    (async () => {
-      try {
-        const snap = await getDoc(doc(db, 'tournaments', id));
-        if (snap.exists() && (snap.data().published !== false || isAdminUser(currentUser, userProfile))) setT({ id: snap.id, ...snap.data() });
-      } catch (e) {
-        toast.error('Could not load this match');
-      }
+    const unsub = onSnapshot(doc(db, 'tournaments', id), (snap) => {
+      if (snap.exists() && (snap.data().published !== false || isAdminUser(currentUser, userProfile))) setT({ id: snap.id, ...snap.data() });
+      else setT(null);
       setLoading(false);
-    })();
+    }, () => {
+      toast.error('Could not load this match');
+      setLoading(false);
+    });
+    return unsub;
   }, [id, currentUser, userProfile]);
 
   const hasJoined = !!(currentUser && t?.registeredPlayers?.includes(currentUser.uid));
@@ -159,7 +160,7 @@ const TournamentDetail = () => {
           {hasJoined && (
             <section className="wrap py-8 border-b border-line">
               <p className="eyebrow mb-4">Room details</p>
-              {t.status === 'live' && (t.roomId || t.roomPassword) ? (
+              {(t.roomId || t.roomPassword) ? (
                 <div className="grid sm:grid-cols-2 gap-3">
                   {[['Room ID', t.roomId], ['Password', t.roomPassword]].map(([label, val]) => (
                     <div key={label} className="border border-ink p-4 flex items-center justify-between">
@@ -174,7 +175,7 @@ const TournamentDetail = () => {
               ) : (
                 <div className="flex items-center gap-3 border border-dashed border-line p-5 text-[14px]">
                   <FiLock className="text-muted shrink-0" />
-                  You're registered. Room ID and password will appear here when the match goes live.
+                  You're registered. Room ID and password will appear here as soon as the admin posts them.
                 </div>
               )}
             </section>

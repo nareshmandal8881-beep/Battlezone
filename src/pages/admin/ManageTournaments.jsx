@@ -88,9 +88,15 @@ const ManageTournaments = () => {
       maxSlots: Number(edit.maxSlots) || 0,
       bannerUrl: (edit.bannerUrl || '').trim() || null,
     };
+    const before = list.find((t) => t.id === edit.id) || {};
+    const roomChanged = (patch.roomId || patch.roomPassword)
+      && (patch.roomId !== (before.roomId || '') || patch.roomPassword !== (before.roomPassword || ''));
     try {
       await updateDoc(doc(db, 'tournaments', edit.id), patch);
       setList((p) => p.map((t) => (t.id === edit.id ? { ...t, ...patch } : t)));
+      if (roomChanged && before.published !== false) {
+        sendNotification({ title: `Room ID is up: ${patch.name}`, body: 'Joined players: open the match page to see the room ID and password.', link: `/tournament/${edit.id}` }).catch(() => {});
+      }
       setEdit(null);
       toast.success('Saved');
     } catch (e) { toast.error('Update failed'); }
@@ -241,6 +247,7 @@ const ManageTournaments = () => {
               <div><label className="field-label">Room ID</label><input className="field num" value={edit.roomId || ''} onChange={setE('roomId')} /></div>
               <div><label className="field-label">Password</label><input className="field num" value={edit.roomPassword || ''} onChange={setE('roomPassword')} /></div>
             </div>
+            <p className="text-[12px] text-muted -mt-1">Joined players see the room right after you save, and everyone gets a "Room ID is up" alert.</p>
             <div><label className="field-label">Status</label>
               <select className="field" value={edit.status} onChange={setE('status')}>
                 <option value="upcoming">Open</option><option value="live">Live</option><option value="completed">Ended</option>
