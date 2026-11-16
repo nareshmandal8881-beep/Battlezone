@@ -15,6 +15,14 @@ export const reloadApp = () => {
   else window.location.reload();
 };
 
+// A screen (e.g. a running Ludo game) can take over the Android back button.
+// The handler returns true when it dealt with the press.
+let backHandler = null;
+export const setBackHandler = (fn) => {
+  backHandler = fn;
+  return () => { if (backHandler === fn) backHandler = null; };
+};
+
 // Called once on start-up inside the Android app.
 export const initNative = (navigate) => {
   if (!isApp) return () => {};
@@ -24,8 +32,9 @@ export const initNative = (navigate) => {
   StatusBar.setBackgroundColor({ color: '#000000' }).catch(() => {});
 
   // Android hardware back button: go back inside the app, exit from the main tabs.
-  const ROOT_TABS = ['/', '/tournaments', '/leaderboard', '/settings', '/login', '/ludo'];
+  const ROOT_TABS = ['/', '/tournaments', '/leaderboard', '/settings', '/login'];
   const sub = CapApp.addListener('backButton', () => {
+    if (backHandler && backHandler()) return;
     if (ROOT_TABS.includes(window.location.pathname)) CapApp.exitApp();
     else navigate(-1);
   });

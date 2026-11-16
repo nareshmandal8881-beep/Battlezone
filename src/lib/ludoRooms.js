@@ -1,6 +1,6 @@
 // Online Ludo rooms on Firestore. A room is one document `ludoRooms/{CODE}`; chat lives in `ludoRooms/{CODE}/chat`.
 import {
-  addDoc, collection, doc, getDoc, runTransaction, serverTimestamp, setDoc,
+  addDoc, collection, doc, getDoc, runTransaction, serverTimestamp, setDoc, updateDoc,
 } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { COLORS, newGame } from './ludoEngine';
@@ -69,20 +69,20 @@ export const startGame = (code) => runTransaction(db, async (tx) => {
   });
 });
 
-// Apply `fn(game)` only if nobody else changed the game since we looked (seq check).
-export const act = (code, seq, fn) => runTransaction(db, async (tx) => {
-  const snap = await tx.get(roomRef(code));
-  const r = snap.data();
-  if (!r?.game || r.game.seq !== seq) return false;
-  const next = fn(r.game);
-  if (next === r.game) return false;
-  tx.update(roomRef(code), {
+// Apply `fn(game)` to the game we're looking at and save it.
+// A plain update (not a transaction) so Firestore shows it on this phone instantly and syncs in the background.
+// Only the player whose turn it is (or one stand-in after a timeout) ever writes, so clashes don't happen in practice.
+export const act = (code, room, fn) => {
+  const g = room?.game;
+  if (!g) return Promise.resolve(false);
+  const next = fn(g);
+  if (next === g) return Promise.resolve(false);
+  return updateDoc(roomRef(code), {
     game: { ...next, turnAt: Date.now() },
-    status: next.phase === 'over' ? 'over' : r.status,
+    status: next.phase === 'over' ? 'over' : room.status,
     updatedAt: Date.now(),
-  });
-  return true;
-});
+  }).then(() => true);
+};
 
 // Leaving: in the lobby the seat is freed; during a game the player is marked as left and auto-played.
 export const leaveRoom = (code, uid) => runTransaction(db, async (tx) => {

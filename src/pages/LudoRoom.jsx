@@ -7,7 +7,7 @@ import toast from 'react-hot-toast';
 import { FiCopy, FiShare2, FiChevronLeft } from 'react-icons/fi';
 import { db } from '../firebase/config';
 import { useAuth } from '../context/AuthContext';
-import { isApp, SITE_URL } from '../lib/native';
+import { isApp, SITE_URL, setBackHandler } from '../lib/native';
 import { META, applyRoll, applyMove, chooseMove, autoPick, rollDie } from '../lib/ludoEngine';
 import {
   joinRoom, startGame, act, leaveRoom, rematch, sendChat, cleanCode, TURN_SECONDS,
@@ -39,7 +39,7 @@ const Lobby = ({ room, me, onLeave }) => {
   };
 
   return (
-    <div className="lb-bg min-h-[calc(100vh-56px)] -mb-[92px] pb-[110px] text-white">
+    <div className="lb-bg lb-page text-white">
       <div className="px-3 pt-3"><button onClick={onLeave} className="lb-round press" aria-label="Leave room"><FiChevronLeft className="text-[22px]" /></button></div>
       <div className="max-w-md mx-auto px-5 text-center">
         <p className="text-[13px] font-bold text-white/70 tracking-widest uppercase mt-2">Room code</p>
@@ -93,11 +93,12 @@ const LudoRoom = () => {
   const [messages, setMessages] = useState([]);
   const [now, setNow] = useState(Date.now());
   const joinTried = useRef(false);
-  const acting = useRef(false);
+  const acting = useRef(null);
 
   // live room + auto-join
   useEffect(() => {
-    const unsub = onSnapshot(doc(db, 'ludoRooms', code), (snap) => {
+    const unsub = onSnapshot(doc(db, 'ludoRooms', code), { includeMetadataChanges: false }, (snap) => {
+      if (!snap.exists() && snap.metadata.fromCache) return; // not in the phone cache yet; wait for the server
       setRoom(snap.exists() ? snap.data() : null);
       if (snap.exists() && !joinTried.current && !snap.data().uids.includes(currentUser.uid)) {
         joinTried.current = true;
@@ -121,11 +122,11 @@ const LudoRoom = () => {
   const myGamePlayer = g?.players.find((p) => p.uid === currentUser.uid);
   const cur = g ? g.players[g.turn] : null;
 
-  const run = async (fn) => {
-    if (acting.current || !g) return;
-    acting.current = true;
-    try { await act(code, g.seq, fn); } catch (e) { /* someone else moved first */ }
-    acting.current = false;
+  // One action per game step: the local copy updates at once, so block repeats until the seq moves on.
+  const run = (fn) => {
+    if (!g || acting.current === g.seq) return;
+    acting.current = g.seq;
+    act(code, room, fn).catch(() => { acting.current = null; toast.error('Connection problem, try again'); });
   };
 
   // my own auto-move when there is only one sensible choice
@@ -133,7 +134,7 @@ const LudoRoom = () => {
     if (!g || g.phase !== 'move' || cur.uid !== currentUser.uid) return undefined;
     const pick = autoPick(g);
     if (pick == null) return undefined;
-    const t = setTimeout(() => run((s) => applyMove(s, pick)), 700);
+    const t = setTimeout(() => run((s) => applyMove(s, pick)), 500);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [g?.seq]);
@@ -156,11 +157,15 @@ const LudoRoom = () => {
     try { await leaveRoom(code, currentUser.uid); } catch (e) { /* ignore */ }
     navigate('/ludo', { replace: true });
   };
+  const leaveRef = useRef(leave);
+  leaveRef.current = leave;
+  // Android back inside a room = Leave (asks first while a game is running)
+  useEffect(() => setBackHandler(() => { leaveRef.current(); return true; }), []);
 
-  if (room === undefined) return <div className="lb-bg min-h-[calc(100vh-56px)] grid place-items-center text-white font-bold">Connecting…</div>;
+  if (room === undefined) return <div className="lb-bg lb-page grid place-items-center text-white font-bold">Connecting…</div>;
   if (room === null) {
     return (
-      <div className="lb-bg min-h-[calc(100vh-56px)] grid place-items-center text-white text-center px-6">
+      <div className="lb-bg lb-page grid place-items-center text-white text-center px-6">
         <div>
           <p className="text-[24px] font-black">Room {code} not found</p>
           <button onClick={() => navigate('/ludo', { replace: true })} className="lb-btn gold h-12 px-6 mt-5">Back to Ludo</button>
@@ -174,7 +179,7 @@ const LudoRoom = () => {
 
   if (!myGamePlayer) {
     return (
-      <div className="lb-bg min-h-[calc(100vh-56px)] grid place-items-center text-white text-center px-6">
+      <div className="lb-bg lb-page grid place-items-center text-white text-center px-6">
         <div>
           <p className="text-[22px] font-black">This game has already started</p>
           <button onClick={() => navigate('/ludo', { replace: true })} className="lb-btn gold h-12 px-6 mt-5">Back to Ludo</button>

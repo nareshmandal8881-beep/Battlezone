@@ -21,6 +21,7 @@ import Settings from './pages/Settings';
 import Leaderboard from './pages/Leaderboard';
 import Ludo from './pages/Ludo';
 import LudoRoom from './pages/LudoRoom';
+import { hideBanner } from './lib/ads';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import CreateTournament from './pages/admin/CreateTournament';
 import ManageTournaments from './pages/admin/ManageTournaments';
@@ -90,6 +91,13 @@ function AppRoutes() {
 
   const mobile = useAppLayout();
   const page = <div key={pathname} className="page-anim">{routes}</div>;
+
+  // Ludo opens as its own full-screen page: no app header, tab bar, site navbar or ad banner.
+  const ludo = pathname === '/ludo' || pathname.startsWith('/ludo/');
+  useEffect(() => { if (ludo) hideBanner(); }, [ludo]);
+  if (ludo) {
+    return <div className="ludo-full">{page}</div>;
+  }
 
   if (mobile) {
     return (

@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { FiUsers, FiCpu, FiSmartphone, FiPlus, FiLogIn } from 'react-icons/fi';
+import { FiUsers, FiCpu, FiSmartphone, FiPlus, FiLogIn, FiHome } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
+import { setBackHandler } from '../lib/native';
 import { showInterstitial } from '../lib/ads';
 import {
   META, colorsFor, newGame, applyRoll, applyMove, chooseMove, autoPick, rollDie,
@@ -84,9 +85,15 @@ const Menu = ({ onLocal }) => {
     photo: cpu && k === 0 ? (userProfile?.photoURL || currentUser?.photoURL || null) : null,
   })), cpu);
 
+  // Android back on the Ludo menu → app home (instead of closing the app)
+  useEffect(() => setBackHandler(() => { navigate('/', { replace: true }); return true; }), [navigate]);
+
   return (
-    <div className="lb-bg min-h-[calc(100vh-56px)] -mb-[92px] pb-[110px] text-white">
-      <div className="max-w-md mx-auto px-5 pt-8">
+    <div className="lb-bg lb-page text-white">
+      <div className="px-3 pt-3">
+        <button onClick={() => navigate('/', { replace: true })} className="lb-round press" aria-label="Back to home"><FiHome /></button>
+      </div>
+      <div className="max-w-md mx-auto px-5 pt-1">
         <Logo />
 
         <div className="space-y-3 mt-8">
@@ -203,6 +210,10 @@ const LocalGame = ({ players, cpu, onExit }) => {
 
   const human = s.players.filter((p) => !p.ai).map((p) => p.color);
 
+  const quit = () => { if (ref.current.phase === 'over' || window.confirm('Quit this game?')) onExit(); };
+  // Android back during a game asks before quitting, instead of leaving the page
+  useEffect(() => setBackHandler(() => { quit(); return true; }));
+
   return (
     <GameScreen
       state={s}
@@ -212,7 +223,7 @@ const LocalGame = ({ players, cpu, onExit }) => {
       messages={messages}
       onSend={cpu ? (kind, text) => say(human[0], kind, text) : null}
       title={cpu ? 'VS COMPUTER' : 'PASS & PLAY'}
-      onQuit={() => { if (s.phase === 'over' || window.confirm('Quit this game?')) onExit(); }}
+      onQuit={quit}
       onAgain={() => { setMessages([]); setS(newGame(players)); }}
     />
   );

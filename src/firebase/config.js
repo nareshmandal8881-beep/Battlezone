@@ -1,6 +1,8 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import {
+  getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager,
+} from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 
 // Firebase web config is public by design (it ships in every browser bundle);
@@ -26,7 +28,17 @@ const app = initializeApp(
 );
 
 export const auth = getAuth(app);
-export const db = getFirestore(app);
+// Keep a copy of Firestore data on the phone (IndexedDB): screens open instantly from the cache,
+// writes show up immediately, and everything syncs in the background. Falls back to memory-only if the
+// browser blocks storage (private mode).
+const makeDb = () => {
+  try {
+    return initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) });
+  } catch (e) {
+    return getFirestore(app);
+  }
+};
+export const db = makeDb();
 export const storage = getStorage(app);
 export const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({ prompt: 'select_account' });

@@ -181,7 +181,7 @@ const GameScreen = ({ state, myColors, onRoll, onPick, messages = [], onSend, ti
   const winner = state.phase === 'over' ? state.players.find((p) => p.color === state.winners[0]) : null;
 
   return (
-    <div className="lb-bg min-h-[calc(100vh-56px)] -mb-[92px] pb-[104px] text-white">
+    <div className="lb-bg lb-page text-white">
       <div className="flex items-center gap-2 px-3 pt-3">
         <button onClick={onQuit} className="lb-round press" aria-label="Leave game"><FiChevronLeft className="text-[22px]" /></button>
         {title && <span className="lb-chip px-3 h-9 grid place-items-center text-[12px] font-extrabold tracking-wider">{title}</span>}

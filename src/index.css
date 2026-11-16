@@ -259,3 +259,7 @@ html.is-app input, html.is-app textarea { user-select: text; -webkit-user-select
 @keyframes nz-out { to { transform: translateY(-120%); opacity: 0; } }
 @keyframes sheet-up { from { transform: translateY(100%); } to { transform: none; } }
 .sheet-up { animation: sheet-up .32s cubic-bezier(.2,.8,.2,1) both; }
+
+/* Ludo full-screen page (no app chrome) */
+.ludo-full { min-height: 100dvh; background: #142c7a; }
+.lb-page { min-height: 100dvh; padding-top: env(safe-area-inset-top); padding-bottom: calc(24px + env(safe-area-inset-bottom)); }
