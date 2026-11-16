@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import {
@@ -10,6 +10,7 @@ import { isApp, shareApp, reloadApp } from '../lib/native';
 import { APK_URL } from '../components/DownloadApp';
 import buildInfo from '../buildInfo.json';
 import { isAdminUser } from '../lib/admin';
+import { notificationPermission, askNotificationPermission } from '../lib/notify';
 
 const Row = ({ icon: Icon, label, hint, to, href, onClick, danger }) => {
   const inner = (
@@ -38,6 +39,15 @@ const Group = ({ title, children }) => (
 const Settings = () => {
   const { currentUser, userProfile, logout, resetPassword } = useAuth();
   const navigate = useNavigate();
+  const [notif, setNotif] = useState('prompt');
+  useEffect(() => { notificationPermission().then(setNotif); }, []);
+  const enableNotif = async () => {
+    if (notif === 'granted') { toast('Notifications are already on'); return; }
+    if (notif === 'denied') { toast('Blocked earlier. Open phone Settings → Apps → BattleZone → Notifications and turn them on.', { duration: 6000 }); return; }
+    const s = await askNotificationPermission();
+    setNotif(s);
+    toast(s === 'granted' ? 'Notifications on' : 'Notifications still off');
+  };
   const [checking, setChecking] = useState(false);
 
   const name = userProfile?.username || currentUser?.displayName || 'Player';
@@ -106,6 +116,11 @@ const Settings = () => {
       </Group>
 
       <Group title="App">
+        <Row icon={FiBell} label={`Phone alerts: ${notif === 'granted' ? 'On' : 'Off'}`}
+          hint={notif === 'granted' ? 'Pop-ups for new matches and room IDs'
+            : notif === 'denied' ? 'Blocked. Turn on in phone Settings → Apps → BattleZone → Notifications'
+            : notif === 'unsupported' ? 'Not supported on this browser' : 'Tap to allow pop-up notifications'}
+          onClick={enableNotif} />
         <Row icon={FiBell} label="Notifications" hint="Announcements and match updates" to="/notifications" />
         <Row icon={FiRefreshCw} label={checking ? 'Checking…' : 'Check for updates'} hint={`Version ${new Date(buildInfo.builtAt).toLocaleDateString('en-IN')} · ${buildInfo.id.slice(-6)}`} onClick={checkUpdate} />
         <Row icon={FiShare2} label="Share BattleZone" hint="Invite your squad" onClick={onShare} />

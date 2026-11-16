@@ -6,12 +6,14 @@ import { showInterstitial } from '../lib/ads';
 
 /* ---------------- board geometry (15 × 15 grid) ---------------- */
 const COLORS = ['red', 'green', 'yellow', 'blue']; // clockwise turn order
+// Printed-board inks, a little dusty rather than neon.
 const META = {
-  red: { name: 'Red', hex: '#ef3e4a', dark: '#a3121c', soft: '#fde3e3', start: 0 },
-  green: { name: 'Green', hex: '#22b85f', dark: '#0d6b33', soft: '#ddf5e7', start: 13 },
-  yellow: { name: 'Yellow', hex: '#ffc21a', dark: '#b07800', soft: '#fff3cf', start: 26 },
-  blue: { name: 'Blue', hex: '#3d7bff', dark: '#1641a8', soft: '#e0eafc', start: 39 },
+  red: { name: 'Red', hex: '#cf3b2b', dark: '#7e1c13', start: 0 },
+  green: { name: 'Green', hex: '#2f8a4c', dark: '#164f29', start: 13 },
+  yellow: { name: 'Yellow', hex: '#e9a719', dark: '#8c5d00', start: 26 },
+  blue: { name: 'Blue', hex: '#2c5fa8', dark: '#132f5c', start: 39 },
 };
+const INK = '#121212';
 
 // 52 shared squares, clockwise, starting at Red's start square.
 const TRACK = [
@@ -41,6 +43,8 @@ const BASE_ORIGIN = { red: [0, 0], green: [0, 9], yellow: [9, 9], blue: [9, 0] }
 const FINISH = { red: [7.5, 6.55], green: [6.55, 7.5], yellow: [7.5, 8.45], blue: [8.45, 7.5] };
 const SAFE = [0, 8, 13, 21, 26, 34, 39, 47];
 const LAST = 56; // 0-50 track, 51-55 home column, 56 finished
+// direction of travel out of each start square (degrees, 0 = pointing right)
+const START_ARROW = { red: 0, green: 90, yellow: 180, blue: 270 };
 
 const PIPS = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
 
@@ -85,56 +89,57 @@ const chooseMove = (state, color, d) => {
 /* ---------------- UI pieces ---------------- */
 const CORNER = { red: 'tl', green: 'tr', yellow: 'br', blue: 'bl' };
 
-const Dice = ({ value, rolling, onClick, active, color, size = 64 }) => (
+const Dice = ({ value, rolling, onClick, active, color, size = 52 }) => (
   <button type="button" onClick={onClick} disabled={!active}
-    className={`dice3d grid grid-cols-3 grid-rows-3 ${rolling ? 'dice-roll' : ''} ${active ? 'dice-ready cursor-pointer' : ''}`}
-    style={{ width: size, height: size, padding: size * 0.15, '--ring': color }}
+    className={`ld-dice grid grid-cols-3 grid-rows-3 ${rolling ? 'dice-roll' : ''} ${active ? 'ready' : ''}`}
+    style={{ width: size, height: size, padding: size * 0.14, '--ring': color }}
     aria-label={active ? 'Roll the dice' : `Dice shows ${value || 'nothing'}`}>
     {Array.from({ length: 9 }).map((_, k) => (
       <span key={k} className="grid place-items-center">
         {value && PIPS[value].includes(k) && (
-          <span className="rounded-full" style={{ width: size * 0.16, height: size * 0.16, background: value === 1 ? '#d42a2a' : '#1b1b1b', boxShadow: 'inset 0 1px 2px rgba(0,0,0,.6)' }} />
+          <span className="rounded-full" style={{ width: size * 0.17, height: size * 0.17, background: value === 1 ? META.red.hex : INK }} />
         )}
       </span>
     ))}
   </button>
 );
 
-const Pawn = ({ color, id }) => (
+// Flat, ink-outlined piece — like a printed cardboard / painted wooden pawn.
+const Pawn = ({ color }) => (
   <svg viewBox="0 0 40 54" className="w-full h-full overflow-visible" aria-hidden="true">
-    <defs>
-      <radialGradient id={`pg-${id}`} cx="35%" cy="28%" r="75%">
-        <stop offset="0" stopColor="#fff" stopOpacity=".85" />
-        <stop offset=".3" stopColor={META[color].hex} />
-        <stop offset="1" stopColor={META[color].dark} />
-      </radialGradient>
-    </defs>
-    <ellipse cx="20" cy="50" rx="12" ry="3.2" fill="rgba(0,0,0,.22)" />
+    <ellipse cx="21.5" cy="50" rx="13" ry="3.4" fill="rgba(18,18,18,.22)" />
     <path d="M20 3.5a9 9 0 0 1 5.4 16.2C29 26 31 33 32.5 41H7.5C9 33 11 26 14.6 19.7A9 9 0 0 1 20 3.5z"
-      fill={`url(#pg-${id})`} stroke="#fff" strokeWidth="2.2" />
-    <ellipse cx="20" cy="42" rx="13.5" ry="5.2" fill={META[color].dark} stroke="#fff" strokeWidth="2.2" />
-    <ellipse cx="16.5" cy="9.5" rx="3" ry="2.2" fill="#fff" opacity=".75" />
+      fill={META[color].hex} stroke={INK} strokeWidth="2.4" strokeLinejoin="round" />
+    <ellipse cx="20" cy="42" rx="13.5" ry="5.2" fill={META[color].dark} stroke={INK} strokeWidth="2.4" />
+    <path d="M15.5 9.5a5 5 0 0 1 4-3" fill="none" stroke="#fff" strokeOpacity=".7" strokeWidth="2" strokeLinecap="round" />
+  </svg>
+);
+
+const Star = () => (
+  <svg viewBox="0 0 24 24" className="w-[64%] h-[64%]" aria-hidden="true">
+    <path d="M12 2.8l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 16.8l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"
+      fill="none" stroke={INK} strokeOpacity=".55" strokeWidth="1.6" strokeLinejoin="round" />
+  </svg>
+);
+
+const Arrow = ({ deg }) => (
+  <svg viewBox="0 0 24 24" className="w-[62%] h-[62%]" style={{ transform: `rotate(${deg}deg)` }} aria-hidden="true">
+    <path d="M4 12h14M13 6.5l5.5 5.5-5.5 5.5" fill="none" stroke="#fff" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
 
 const PlayerPanel = ({ p, g, active, children }) => {
   const home = g.tokens[p.color].filter((q) => q === LAST).length;
-  const corner = CORNER[p.color];
-  const right = corner === 'tr' || corner === 'br';
+  const right = CORNER[p.color] === 'tr' || CORNER[p.color] === 'br';
+  const done = g.winners.includes(p.color);
   return (
-    <div className={`flex items-center gap-2 ${right ? 'flex-row-reverse text-right' : ''}`}>
-      <div className={`player-chip ${active ? 'on' : ''}`} style={{ '--c': META[p.color].hex }}>
-        <span className="text-[14px] leading-none">{p.label === 'You' ? 'YOU' : p.label.replace('Player ', 'P').replace('CPU ', 'C')}</span>
+    <div className={`ld-player ${active ? 'on' : ''} ${right ? 'flex-row-reverse text-right' : ''}`} style={{ '--c': META[p.color].hex }}>
+      <span className="ld-swatch" />
+      <div className="min-w-0 flex-1">
+        <p className="text-[14px] font-bold leading-tight truncate">{p.label}</p>
+        <p className="num text-[11px] text-muted mt-0.5">{done ? 'finished' : `${home}/4 home`}</p>
       </div>
-      <div className="min-w-0">
-        <p className="text-[13px] font-bold truncate" style={{ color: '#fff', opacity: active ? 1 : 0.7 }}>{p.label}</p>
-        <div className={`flex gap-1 mt-1 ${right ? 'justify-end' : ''}`}>
-          {[0, 1, 2, 3].map((k) => (
-            <span key={k} className="w-2 h-2 rounded-full" style={{ background: k < home ? '#ffd84d' : 'rgba(255,255,255,.25)' }} />
-          ))}
-        </div>
-      </div>
-      <div className="w-[58px] h-[58px] grid place-items-center shrink-0">{children}</div>
+      <div className="w-[52px] h-[52px] grid place-items-center shrink-0">{children}</div>
     </div>
   );
 };
@@ -152,57 +157,89 @@ const Setup = ({ onStart }) => {
     })));
   };
 
-  const Card = ({ id, icon, title, sub }) => (
-    <button type="button" onClick={() => setMode(id)}
-      className={`ludo-card text-left p-4 press ${mode === id ? 'on' : ''}`}>
-      <span className="block font-mono text-[11px] tracking-widest sub">{icon}</span>
-      <span className="block font-black text-[17px] mt-1">{title}</span>
-      <span className="block text-[12px] sub mt-0.5">{sub}</span>
+  const Option = ({ id, title, sub }) => (
+    <button type="button" onClick={() => setMode(id)} aria-pressed={mode === id}
+      className={`w-full flex items-center gap-4 text-left px-4 py-3.5 border border-ink -mt-px first:mt-0 transition-colors ${mode === id ? 'bg-white' : 'bg-transparent'}`}>
+      <span className={`w-[18px] h-[18px] rounded-full border-2 border-ink grid place-items-center shrink-0`}>
+        {mode === id && <span className="w-2 h-2 rounded-full bg-ink" />}
+      </span>
+      <span className="flex-1">
+        <span className="block font-bold text-[16px]">{title}</span>
+        <span className="block text-[13px] text-muted">{sub}</span>
+      </span>
     </button>
   );
 
   return (
-    <div className="ludo-bg min-h-[calc(100vh-56px)] -mb-[92px] pb-[110px]">
-      <div className="max-w-md mx-auto px-5 pt-8 pb-10">
-        <div className="ludo-logo mx-auto" aria-hidden="true"><i /><i /><i /><i /></div>
-        <h1 className="text-center text-[58px] mt-4 rise ludo-title">LUDO</h1>
-        <p className="text-center font-mono text-[11px] tracking-[0.3em] text-white/80">ROLL · RACE · CAPTURE</p>
+    <div className="bg-canvas min-h-[calc(100vh-56px)] -mb-[92px] pb-[110px]">
+      <div className="max-w-md mx-auto px-4 pt-7">
+        <div className="flex items-end justify-between gap-4">
+          <div>
+            <p className="eyebrow">Board game · works offline</p>
+            <h1 className="text-[76px] leading-[.86] mt-2">Ludo</h1>
+          </div>
+          <MiniBoard />
+        </div>
+        <p className="text-[15px] text-[#3a3833] mt-4 max-w-[30ch]">Four pieces each. Get all of yours home before anyone else does.</p>
 
-        <p className="font-mono text-[11px] tracking-[0.2em] text-white/70 mt-8 mb-2">CHOOSE MODE</p>
-        <div className="grid grid-cols-2 gap-3">
-          <Card id="cpu" icon="MODE 01" title="Vs Computer" sub="Play solo against bots" />
-          <Card id="pass" icon="MODE 02" title="Pass & Play" sub="Friends on one phone" />
+        <p className="field-label mt-8">Opponents</p>
+        <div>
+          <Option id="cpu" title="Computer" sub="Play on your own against bots" />
+          <Option id="pass" title="Friends, same phone" sub="Pass the phone around each turn" />
         </div>
 
-        <p className="font-mono text-[11px] tracking-[0.2em] text-white/70 mt-6 mb-2">PLAYERS</p>
-        <div className="grid grid-cols-3 gap-3">
+        <p className="field-label mt-6">Players</p>
+        <div className="flex border border-ink">
           {[2, 3, 4].map((n) => (
-            <button key={n} type="button" onClick={() => setCount(n)} className={`ludo-card py-3 press ${count === n ? 'on' : ''}`}>
-              <span className="block font-black text-[22px]">{n}</span>
-              <span className="flex justify-center gap-1 mt-1">
-                {colorsFor(n).map((c) => <span key={c} className="w-2.5 h-2.5 rounded-full" style={{ background: META[c].hex }} />)}
+            <button key={n} type="button" onClick={() => setCount(n)}
+              className={`flex-1 h-14 border-r border-ink last:border-r-0 flex flex-col items-center justify-center gap-1 ${count === n ? 'bg-ink text-white' : 'bg-white'}`}>
+              <span className="num font-bold text-[17px] leading-none">{n}</span>
+              <span className="flex gap-1">
+                {colorsFor(n).map((c) => <span key={c} className="w-2 h-2" style={{ background: META[c].hex }} />)}
               </span>
             </button>
           ))}
         </div>
 
-        <button onClick={start} className="ludo-start w-full h-14 mt-8 text-black font-black text-[18px] tracking-wider press">
-          ▶ START GAME
-        </button>
+        <button onClick={start} className="btn btn-dark w-full h-14 mt-8 text-[16px] ld-shadow">Start game</button>
 
-        <details className="mt-8 text-[13px] ludo-card p-4 text-white">
-          <summary className="cursor-pointer font-semibold">How to play</summary>
-          <ul className="mt-2 space-y-1.5 list-disc pl-5">
-            <li>Roll a 6 to bring a token out of base.</li>
-            <li>A 6, a capture or reaching home gives another roll. Three 6s in a row lose the turn.</li>
-            <li>Land on an opponent to send it home — except on ★ squares and start squares.</li>
-            <li>Exact roll needed to finish. First to bring all 4 home wins.</li>
-          </ul>
-        </details>
+        <div className="mt-10 border-t border-ink pt-4 pb-4">
+          <p className="eyebrow mb-3">House rules</p>
+          <ol className="space-y-2 text-[14px] text-[#3a3833]">
+            {[
+              'You need a 6 to bring a piece out.',
+              'Rolling a 6, knocking someone out or reaching home gives you another roll. Three 6s in a row and you lose the turn.',
+              'Land on another player\'s piece to send it back to base. Not on star squares or start squares.',
+              'You need the exact number to get home.',
+            ].map((r, k) => (
+              <li key={k} className="flex gap-3"><span className="num text-muted w-4 shrink-0">{k + 1}.</span><span>{r}</span></li>
+            ))}
+          </ol>
+        </div>
       </div>
     </div>
   );
 };
+
+// Small static drawing of the board for the setup screen.
+const MiniBoard = () => (
+  <svg viewBox="0 0 15 15" className="w-[84px] h-[84px] shrink-0 ld-shadow-sm bg-white border-2 border-ink" style={{ transform: 'rotate(4deg)' }} aria-hidden="true">
+    {COLORS.map((c) => {
+      const [r, col] = BASE_ORIGIN[c];
+      return (
+        <g key={c}>
+          <rect x={col} y={r} width="6" height="6" fill={META[c].hex} />
+          <rect x={col + 1} y={r + 1} width="4" height="4" fill="#fbf8f1" />
+        </g>
+      );
+    })}
+    <polygon points="6,6 9,6 7.5,7.5" fill={META.green.hex} />
+    <polygon points="9,6 9,9 7.5,7.5" fill={META.yellow.hex} />
+    <polygon points="9,9 6,9 7.5,7.5" fill={META.blue.hex} />
+    <polygon points="6,9 6,6 7.5,7.5" fill={META.red.hex} />
+    <path d="M6 0v15M9 0v15M0 6h15M0 9h15" stroke={INK} strokeWidth=".18" />
+  </svg>
+);
 
 /* ---------------- game ---------------- */
 const Ludo = () => {
@@ -253,13 +290,13 @@ const Ludo = () => {
     play('dice');
 
     if (sixes === 3) {
-      commit({ msg: 'Three sixes — turn lost' });
+      commit({ msg: 'Three sixes. Turn lost.' });
       await sleep(1000);
       return nextTurn();
     }
     const movable = ref.current.tokens[color].map((p, i) => (canMove(p, d) ? i : -1)).filter((i) => i >= 0);
     if (!movable.length) {
-      commit({ msg: d === 6 ? 'No move possible' : 'No move — need a 6' });
+      commit({ msg: d === 6 ? 'No move possible' : 'No move. Need a 6.' });
       play('nomove');
       await sleep(850);
       return nextTurn();
@@ -328,7 +365,7 @@ const Ludo = () => {
 
     const done = winners.includes(color);
     if (!done && (d === 6 || captured || to === LAST)) {
-      commit({ phase: 'roll', msg: captured ? 'Captured! Roll again' : to === LAST ? 'Home! Roll again' : 'Six! Roll again' });
+      commit({ phase: 'roll', msg: captured ? 'Knocked one out. Roll again.' : to === LAST ? 'Made it home. Roll again.' : 'Six. Roll again.' });
     } else {
       nextTurn();
     }
@@ -381,9 +418,9 @@ const Ludo = () => {
   const cells = [];
   TRACK.forEach(([r, c], idx) => {
     const startColor = COLORS.find((col) => META[col].start === idx);
-    cells.push({ r, c, color: startColor, star: SAFE.includes(idx) && !startColor, start: !!startColor });
+    cells.push({ r, c, color: startColor, star: SAFE.includes(idx) && !startColor, start: startColor });
   });
-  Object.entries(HOME).forEach(([col, arr]) => arr.forEach(([r, c]) => cells.push({ r, c, color: col, lane: true })));
+  Object.entries(HOME).forEach(([col, arr]) => arr.forEach(([r, c]) => cells.push({ r, c, color: col })));
 
   const byCorner = (corner) => g.players.find((p) => CORNER[p.color] === corner);
   const panel = (corner) => {
@@ -393,107 +430,114 @@ const Ludo = () => {
     return (
       <PlayerPanel p={p} g={g} active={active}>
         {active ? (
-          <Dice value={g.dice} rolling={g.rolling} color={META[p.color].hex} size={54}
+          <Dice value={g.dice} rolling={g.rolling} color={META[p.color].hex} size={48}
             active={human && g.phase === 'roll' && g.status === 'playing'} onClick={roll} />
         ) : null}
       </PlayerPanel>
     );
   };
 
-  const status = g.msg || (cur.ai ? `${cur.label} is thinking…` : g.phase === 'roll' ? `${cur.label === 'You' ? 'Your' : `${cur.label}'s`} turn — tap the dice` : g.phase === 'move' ? 'Tap a glowing token' : '');
+  const whose = cur.label === 'You' ? 'Your' : `${cur.label}'s`;
+  const status = g.msg || (cur.ai ? `${cur.label} is playing…` : g.phase === 'roll' ? `${whose} turn. Tap the dice.` : g.phase === 'move' ? 'Pick a piece to move' : '');
+  const winnerLabel = g.status === 'over' ? g.players.find((p) => p.color === g.winners[0]).label : '';
 
   return (
-    <div className="ludo-bg min-h-[calc(100vh-56px)] -mb-[92px] pb-[110px] pb-6">
+    <div className="bg-canvas min-h-[calc(100vh-56px)] -mb-[92px] pb-[110px]">
       {/* top bar */}
-      <div className="flex items-center justify-between px-3 pt-3">
+      <div className="flex items-center justify-between px-4 h-12 border-b border-ink bg-white">
         <button onClick={() => { if (window.confirm('Quit this game?')) setG((ref.current = { status: 'setup' })); }}
-          className="ludo-icon-btn press" aria-label="Quit">✕</button>
-        <p className="ludo-pill">{g.players.some((x) => x.ai) ? 'VS COMPUTER' : 'PASS & PLAY'} · {g.players.length}P</p>
-        <button onClick={toggleMute} className="ludo-icon-btn press text-[17px]" aria-label={muted ? 'Sound on' : 'Mute'}>
+          className="text-[13px] font-semibold underline underline-offset-2">Quit</button>
+        <p className="eyebrow !text-ink">{g.players.some((x) => x.ai) ? 'vs computer' : 'same phone'} · {g.players.length} players</p>
+        <button onClick={toggleMute} className="w-9 h-9 -mr-2 grid place-items-center text-[18px]" aria-label={muted ? 'Sound on' : 'Mute'}>
           {muted ? <FiVolumeX /> : <FiVolume2 />}
         </button>
       </div>
 
-      <div className="mx-auto px-3 mt-3" style={{ width: 'min(100%, 560px)' }}>
-        <div className="grid grid-cols-2 gap-2 mb-2">{panel('tl')}{panel('tr')}</div>
+      <div className="mx-auto px-3 pt-3" style={{ width: 'min(100%, 540px)' }}>
+        <div className="grid grid-cols-2 gap-2 mb-3">{panel('tl')}{panel('tr')}</div>
 
         {/* board */}
-        <div className="ludo-frame">
-          <div className="relative w-full aspect-square ludo-board select-none overflow-hidden">
-            {COLORS.map((col) => {
-              const [r, c] = BASE_ORIGIN[col];
-              const active = cur.color === col && g.status === 'playing';
-              return (
-                <div key={col} className={`absolute ludo-base ${active ? 'on' : ''}`}
-                  style={{ top: `${r * cell}%`, left: `${c * cell}%`, width: `${6 * cell}%`, height: `${6 * cell}%`, '--c': META[col].hex, '--d': META[col].dark }}>
-                  <div className="ludo-yard" />
-                  {BASE[col].map(([y, x], k) => (
-                    <span key={k} className="ludo-slot"
-                      style={{ top: `${((y - r) / 6) * 100}%`, left: `${((x - c) / 6) * 100}%`, '--c': META[col].hex }} />
-                  ))}
-                </div>
-              );
-            })}
-
-            {cells.map(({ r, c, color, star, start, lane }) => (
-              <div key={`${r}-${c}`} className={`absolute ludo-cell ${color ? 'tint' : ''}`}
-                style={{ top: `${r * cell}%`, left: `${c * cell}%`, width: `${cell}%`, height: `${cell}%`, '--c': color ? META[color].hex : undefined, '--d': color ? META[color].dark : undefined }}>
-                {(star || start) && <span className={start ? 'text-white' : 'text-[#b9bfdc]'} style={{ fontSize: 'min(3.2vw, 17px)' }}>{start ? '➤' : '★'}</span>}
-                {lane && null}
+        <div className="ld-board relative w-full aspect-square select-none overflow-hidden">
+          {COLORS.map((col) => {
+            const [r, c] = BASE_ORIGIN[col];
+            const active = cur.color === col && g.status === 'playing';
+            return (
+              <div key={col} className={`absolute ld-base ${active ? 'on' : ''}`}
+                style={{ top: `${r * cell}%`, left: `${c * cell}%`, width: `${6 * cell}%`, height: `${6 * cell}%`, '--c': META[col].hex }}>
+                <div className="ld-yard" />
+                {BASE[col].map(([y, x], k) => (
+                  <span key={k} className="ld-slot"
+                    style={{ top: `${((y - r) / 6) * 100}%`, left: `${((x - c) / 6) * 100}%`, '--c': META[col].hex }} />
+                ))}
               </div>
-            ))}
+            );
+          })}
 
-            <div className="absolute ludo-center" style={{ top: `${6 * cell}%`, left: `${6 * cell}%`, width: `${3 * cell}%`, height: `${3 * cell}%`,
-              background: `conic-gradient(from -45deg, ${META.green.hex} 0 90deg, ${META.yellow.hex} 90deg 180deg, ${META.blue.hex} 180deg 270deg, ${META.red.hex} 270deg 360deg)` }}>
-              <span className="text-white drop-shadow" style={{ fontSize: 'min(6vw, 30px)' }}>★</span>
+          {cells.map(({ r, c, color, star, start }) => (
+            <div key={`${r}-${c}`} className="absolute ld-cell"
+              style={{ top: `${r * cell}%`, left: `${c * cell}%`, width: `${cell}%`, height: `${cell}%`, background: color ? META[color].hex : undefined }}>
+              {star && <Star />}
+              {start && <Arrow deg={START_ARROW[start]} />}
             </div>
+          ))}
 
-            {placed.map((t) => {
-              const movable = g.phase === 'move' && t.color === cur.color && g.movable.includes(t.i) && human;
-              const w = cell * (t.small ? 0.7 : 0.92);
-              return (
-                <button key={`${t.color}${t.i}`} type="button" onClick={() => movable && moveToken(t.i)} disabled={!movable}
-                  className={`pawn absolute ${movable ? 'pawn-movable' : ''}`}
-                  style={{ left: `${(t.x / 15) * 100}%`, top: `${(t.y / 15) * 100}%`, width: `${w}%`, height: `${w * 1.35}%`,
-                    '--c': META[t.color].hex, zIndex: movable ? 40 : 10 + Math.round(t.y * 2) }}
-                  aria-label={`${META[t.color].name} token ${t.i + 1}`}>
-                  <Pawn color={t.color} id={`${t.color}${t.i}`} />
-                </button>
-              );
-            })}
-          </div>
+          <svg className="absolute" viewBox="0 0 3 3" preserveAspectRatio="none" aria-hidden="true"
+            style={{ top: `${6 * cell}%`, left: `${6 * cell}%`, width: `${3 * cell}%`, height: `${3 * cell}%` }}>
+            <polygon points="0,0 3,0 1.5,1.5" fill={META.green.hex} />
+            <polygon points="3,0 3,3 1.5,1.5" fill={META.yellow.hex} />
+            <polygon points="3,3 0,3 1.5,1.5" fill={META.blue.hex} />
+            <polygon points="0,3 0,0 1.5,1.5" fill={META.red.hex} />
+            <path d="M0 0L3 3M3 0L0 3" stroke={INK} strokeWidth=".035" />
+            <rect x="0" y="0" width="3" height="3" fill="none" stroke={INK} strokeWidth=".07" />
+          </svg>
+
+          {placed.map((t) => {
+            const movable = g.phase === 'move' && t.color === cur.color && g.movable.includes(t.i) && human;
+            const w = cell * (t.small ? 0.7 : 0.9);
+            return (
+              <button key={`${t.color}${t.i}`} type="button" onClick={() => movable && moveToken(t.i)} disabled={!movable}
+                className={`ld-pawn absolute ${movable ? 'can' : ''}`}
+                style={{ left: `${(t.x / 15) * 100}%`, top: `${(t.y / 15) * 100}%`, width: `${w}%`, height: `${w * 1.35}%`,
+                  zIndex: movable ? 40 : 10 + Math.round(t.y * 2) }}
+                aria-label={`${META[t.color].name} piece ${t.i + 1}${movable ? ', can move' : ''}`}>
+                <Pawn color={t.color} />
+              </button>
+            );
+          })}
         </div>
 
-        <div className="grid grid-cols-2 gap-2 mt-2">{panel('bl')}{panel('br')}</div>
+        <div className="grid grid-cols-2 gap-2 mt-3">{panel('bl')}{panel('br')}</div>
 
-        <div className="ludo-status mt-3" style={{ '--c': curHex }}>
-          <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: curHex }} />
+        <div className="mt-3 flex items-center gap-3 bg-ink text-white px-4 h-11 text-[14px] font-semibold" aria-live="polite">
+          <span className="w-3 h-3 shrink-0 border border-white" style={{ background: curHex }} />
           <span className="truncate">{status}</span>
         </div>
       </div>
 
       {/* result */}
       {g.status === 'over' && (
-        <div className="fixed inset-0 z-[60] bg-black/70 grid place-items-center p-6">
-          <div className="w-full max-w-sm bg-white text-[#1d2386] rounded-3xl p-6 text-center rise" style={{ boxShadow: '0 8px 0 #1d2386' }}>
-            <p className="font-mono text-[12px] tracking-[0.3em] text-muted">GAME OVER</p>
-            <h2 className="text-[38px] mt-2 font-black" style={{ color: META[g.winners[0]].hex }}>
-              {g.players.find((p) => p.color === g.winners[0]).label === 'You' ? 'You win!' : `${g.players.find((p) => p.color === g.winners[0]).label} wins!`}
-            </h2>
-            <ol className="mt-4 text-left">
-              {g.winners.map((col, k) => (
-                <li key={col} className="flex items-center gap-3 py-2 border-b border-line">
-                  <span className="num w-5 font-bold">{k + 1}</span>
-                  <span className="w-3 h-3 rounded-full" style={{ background: META[col].hex }} />
-                  <span className="font-semibold">{g.players.find((p) => p.color === col).label}</span>
-                </li>
-              ))}
-            </ol>
-            <div className="grid grid-cols-2 gap-2 mt-5">
-              <button onClick={() => startGame(g.players)} className="ludo-start h-11 text-black font-bold press">Play again</button>
-              <button onClick={() => setG((ref.current = { status: 'setup' }))} className="h-11 rounded-2xl border-2 border-[#1d2386] font-bold press">Change mode</button>
+        <div className="fixed inset-0 z-[60] bg-black/50 grid place-items-center p-5">
+          <div className="w-full max-w-sm bg-white border border-ink rise" style={{ boxShadow: `6px 6px 0 ${INK}` }}>
+            <div className="h-2" style={{ background: META[g.winners[0]].hex }} />
+            <div className="p-6">
+              <p className="eyebrow">Game over</p>
+              <h2 className="text-[44px] mt-1">{winnerLabel === 'You' ? 'You won.' : `${winnerLabel} won.`}</h2>
+              <ol className="mt-5 border-t border-ink">
+                {g.winners.map((col, k) => (
+                  <li key={col} className="flex items-center gap-3 py-2.5 border-b border-line">
+                    <span className="num w-5 text-muted">{k + 1}</span>
+                    <span className="w-3 h-3 border border-ink" style={{ background: META[col].hex }} />
+                    <span className="font-semibold flex-1">{g.players.find((p) => p.color === col).label}</span>
+                    {k === 0 && <span className="tag border-ink">1st</span>}
+                  </li>
+                ))}
+              </ol>
+              <div className="grid grid-cols-2 gap-2 mt-6">
+                <button onClick={() => startGame(g.players)} className="btn btn-dark">Play again</button>
+                <button onClick={() => setG((ref.current = { status: 'setup' }))} className="btn btn-light">Change setup</button>
+              </div>
+              <Link to="/" className="block mt-4 text-[13px] text-muted underline text-center">Back to home</Link>
             </div>
-            <Link to="/" className="block mt-4 text-[12px] text-muted underline">Back to home</Link>
           </div>
         </div>
       )}

@@ -1,10 +1,19 @@
-import { useEffect, useState } from 'react';
+import { createElement, useEffect, useState } from 'react';
 import { addDoc, collection, limit, onSnapshot, orderBy, query, serverTimestamp } from 'firebase/firestore';
 import toast from 'react-hot-toast';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { FirebaseMessaging } from '@capacitor-firebase/messaging';
 import { db } from '../firebase/config';
 import { isApp } from './native';
+import NotifyPopup from '../components/NotifyPopup';
+
+let go = (link) => window.location.assign(link); // replaced by the router's navigate once the app mounts
+
+// In-app slide-down card (logo, title, body) — swipe up to dismiss, tap to open.
+const showPopup = (n) => toast.custom(
+  (t) => createElement(NotifyPopup, { t, n, onOpen: () => { toast.dismiss(t.id); if (n.link) go(n.link); } }),
+  { id: `n-${n.id}`, duration: 6000 },
+);
 
 const SEEN_KEY = 'bz-notif-seen';
 
@@ -22,7 +31,20 @@ const setSeen = (t) => { try { localStorage.setItem(SEEN_KEY, String(t)); } catc
 export const sendNotification = ({ title, body = '', link = '' }) =>
   addDoc(collection(db, 'notifications'), { title, body, link, createdAt: serverTimestamp() });
 
-// Ask once for permission to show phone/browser notifications.
+// 'granted' | 'denied' | 'prompt' | 'unsupported'
+export const notificationPermission = async () => {
+  try {
+    if (isApp) {
+      const p = await LocalNotifications.checkPermissions();
+      if (p.display === 'granted' || p.display === 'denied') return p.display;
+      return 'prompt';
+    }
+    if (!('Notification' in window)) return 'unsupported';
+    return Notification.permission === 'default' ? 'prompt' : Notification.permission;
+  } catch (e) { return 'unsupported'; }
+};
+
+// Ask for permission to show phone/browser notifications. Returns the new state.
 export const askNotificationPermission = async () => {
   try {
     if (isApp) {
@@ -40,6 +62,7 @@ export const askNotificationPermission = async () => {
       await Notification.requestPermission();
     }
   } catch (e) { /* not supported */ }
+  return notificationPermission();
 };
 
 let nativeId = 1;
@@ -48,7 +71,10 @@ const showSystem = (n) => {
     if (isApp) {
       if (PUSH_SERVER) return; // the server push already shows it
       LocalNotifications.schedule({
-        notifications: [{ id: nativeId++, title: n.title, body: n.body || ' ', channelId: 'alerts', extra: { link: n.link || '' } }],
+        notifications: [{
+          id: nativeId++, title: n.title, body: n.body || ' ', channelId: 'alerts', extra: { link: n.link || '' },
+          smallIcon: 'ic_stat_notify', largeIcon: 'ic_notify_large', iconColor: '#F5B301',
+        }],
       });
     } else if ('Notification' in window && Notification.permission === 'granted' && document.visibilityState !== 'visible') {
       const sys = new Notification(n.title, { body: n.body, icon: '/logo192.png' });
@@ -73,7 +99,7 @@ const start = () => {
       snap.docChanges().filter((c) => c.type === 'added').forEach((c) => {
         const n = { id: c.doc.id, ...c.doc.data() };
         if (ms(n) >= openedAt - 5000) {
-          toast(`🔔 ${n.title}`, { duration: 5000 });
+          showPopup(n);
           showSystem(n);
         }
       });
@@ -100,6 +126,7 @@ export const useNotifications = () => {
 
 // Tap on an Android notification → open its link inside the app.
 export const initNotificationTaps = (navigate) => {
+  go = (link) => navigate(link);
   if (!isApp) return;
   FirebaseMessaging.addListener('notificationActionPerformed', (e) => {
     const link = e.notification?.data?.link;

@@ -26,7 +26,8 @@ import ManageTournaments from './pages/admin/ManageTournaments';
 import ManageGames from './pages/admin/ManageGames';
 import SendNotification from './pages/admin/SendNotification';
 import Notifications from './pages/Notifications';
-import { initNotificationTaps, useNotifications, askNotificationPermission } from './lib/notify';
+import { initNotificationTaps, useNotifications, askNotificationPermission, notificationPermission } from './lib/notify';
+import AllowNotifications from './components/AllowNotifications';
 
 const ProtectedRoute = ({ children }) => {
   const { currentUser } = useAuth();
@@ -79,7 +80,8 @@ function AppRoutes() {
 
   useEffect(() => initNative(navigate), [navigate]);
   useEffect(() => { initNotificationTaps(navigate); }, [navigate]);
-  useEffect(() => { if (isApp) setTimeout(askNotificationPermission, 2500); }, []);
+  // Already-allowed users: make sure the channel + push topic are set up (no prompt is shown).
+  useEffect(() => { if (isApp) notificationPermission().then((s) => { if (s === 'granted') askNotificationPermission(); }); }, []);
   useNotifications(); // start the live listener so new announcements pop up anywhere
   useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
 
@@ -91,6 +93,7 @@ function AppRoutes() {
       <>
         <AppShell>{page}</AppShell>
         <UpdateBanner />
+        <AllowNotifications />
       </>
     );
   }
@@ -102,6 +105,7 @@ function AppRoutes() {
       <main className="flex-grow">{page}</main>
       <Footer />
       <UpdateBanner />
+      <AllowNotifications />
     </div>
   );
 }

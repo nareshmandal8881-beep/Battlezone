@@ -7,6 +7,7 @@ import { db, storage } from '../../firebase/config';
 import { PageHead } from '../../components/ui';
 import { useGames } from '../../lib/games';
 import ModeMapPicker from '../../components/ModeMapPicker';
+import { vsSlots } from '../../lib/gameModes';
 import { sendNotification } from '../../lib/notify';
 
 const SLOT_OPTIONS = [25, 50, 100, 200];
@@ -86,15 +87,16 @@ const CreateTournament = () => {
             <Field label="Date"><input type="date" className="field" value={f.date} onChange={set('date')} /></Field>
             <Field label="Start time"><input type="time" className="field" value={f.time} onChange={set('time')} /></Field>
           </div>
-          <Field label="Slots">
+          <Field label={vsSlots(f.teamSize) ? `Players (${f.teamSize} = ${vsSlots(f.teamSize)} total)` : 'Slots'}>
             <div className="flex border border-ink w-fit">
-              {SLOT_OPTIONS.map((s) => (
+              {(vsSlots(f.teamSize) ? [vsSlots(f.teamSize)] : SLOT_OPTIONS).map((s) => (
                 <button key={s} type="button" onClick={() => setF((p) => ({ ...p, maxSlots: s }))}
                   className={`h-10 px-4 num text-[14px] border-r border-ink last:border-r-0 ${Number(f.maxSlots) === s ? 'bg-ink text-white' : 'bg-white'}`}>
-                  {s}
+                  {vsSlots(f.teamSize) ? `${s} players` : s}
                 </button>
               ))}
             </div>
+            {vsSlots(f.teamSize) && <p className="text-[12px] text-muted mt-1">Once {vsSlots(f.teamSize)} players join, open Manage → Players → Random teams to split them into Team A and Team B.</p>}
           </Field>
           <Field label="Status">
             <select className="field" value={f.status} onChange={set('status')}>

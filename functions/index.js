@@ -16,7 +16,7 @@ exports.pushAnnouncement = onDocumentCreated({ document: 'notifications/{id}', r
     data: { link: n.link || '' },
     android: {
       priority: 'high',
-      notification: { channelId: 'alerts', visibility: 'public', defaultSound: true, defaultVibrateTimings: true, color: '#f5b301' },
+      notification: { channelId: 'alerts', icon: 'ic_stat_notify', visibility: 'public', defaultSound: true, defaultVibrateTimings: true, color: '#f5b301' },
     },
   });
 });

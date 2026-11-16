@@ -180,6 +180,26 @@ const TournamentDetail = () => {
             </section>
           )}
 
+          {(t.teams?.A?.length || t.teams?.B?.length) ? (
+            <section className="wrap py-8 border-b border-line">
+              <p className="eyebrow mb-4">Teams{t.teamSize ? ` · ${t.teamSize}` : ''}</p>
+              <div className="grid grid-cols-2 gap-3">
+                {[['A', t.teams.A || []], ['B', t.teams.B || []]].map(([k, list]) => (
+                  <div key={k} className={`border p-4 ${list.some((x) => x.uid === currentUser?.uid) ? 'border-accent' : 'border-ink'}`}>
+                    <p className={`font-bold text-[16px] mb-2 ${k === 'A' ? 'text-accent' : ''}`}>Team {k}</p>
+                    <ol className="space-y-1 text-[14px]">
+                      {list.map((x, i) => (
+                        <li key={x.uid} className="truncate">
+                          <span className="num text-muted mr-2">{i + 1}</span>{x.name}{x.uid === currentUser?.uid && <b> (you)</b>}
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
+                ))}
+              </div>
+            </section>
+          ) : null}
+
           <section className="wrap py-8 border-b border-line">
             <p className="eyebrow mb-4">Prize split</p>
             <table className="w-full text-[15px]">

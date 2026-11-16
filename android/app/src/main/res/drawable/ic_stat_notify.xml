@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Status-bar notification icon. Android shows it as a single-colour silhouette,
+     so it must be white on transparent (a full-colour logo would turn into a grey square). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- shield with a lightning bolt cut out -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:fillType="evenOdd"
+        android:pathData="M12,1.5L3.5,4.8v6.1c0,5.2 3.6,9.9 8.5,11.6c4.9,-1.7 8.5,-6.4 8.5,-11.6V4.8L12,1.5zM13.4,5.5L8.2,13h3.3l-1.1,5.5l5.4,-7.7h-3.4l1,-5.3z" />
+</vector>

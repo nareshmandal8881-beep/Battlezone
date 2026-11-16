@@ -1,4 +1,4 @@
-import { AdMob, BannerAdPosition, BannerAdSize } from '@capacitor-community/admob';
+import { AdMob, BannerAdPosition, BannerAdSize, BannerAdPluginEvents } from '@capacitor-community/admob';
 import { isApp } from './native';
 
 /*
@@ -15,40 +15,61 @@ export const ADS = {
   ADSENSE_CLIENT: 'ca-pub-2818671706434531',
 };
 
-const TAB_BAR_DP = 66; // keep the banner just above the bottom tab bar
+const TAB_BAR_DP = 66; // keep the banner just above the bottom tab bar (dp, plugin scales by density)
+const RETRY_MS = 45 * 1000;
 let ready = null;
-let bannerShown = false;
 let lastInterstitial = 0;
+
+// Banner state: `want` is what the current page asks for, `on` is what's on screen.
+// All show/hide calls run one after another so a quick page change can't leave a banner stuck.
+let want = false;
+let on = false;
+let queue = Promise.resolve();
+let retryTimer = null;
 
 const init = () => {
   if (!isApp) return Promise.resolve(false);
   if (!ready) {
     ready = AdMob.initialize({ initializeForTesting: ADS.TESTING })
-      .then(() => true)
+      .then(() => {
+        // No fill / network error → try again a bit later while the page still wants a banner.
+        AdMob.addListener(BannerAdPluginEvents.FailedToLoad, () => {
+          on = false;
+          clearTimeout(retryTimer);
+          retryTimer = setTimeout(() => { if (want) sync(); }, RETRY_MS); // eslint-disable-line no-use-before-define
+        }).catch(() => {});
+        return true;
+      })
       .catch(() => false);
   }
   return ready;
 };
 
-export const showBanner = async () => {
-  if (!(await init()) || bannerShown) return;
-  try {
-    await AdMob.showBanner({
-      adId: ADS.BANNER_ID,
-      adSize: BannerAdSize.ADAPTIVE_BANNER,
-      position: BannerAdPosition.BOTTOM_CENTER,
-      margin: TAB_BAR_DP,
-      isTesting: ADS.TESTING,
-    });
-    bannerShown = true;
-  } catch (e) { /* no fill / offline */ }
+const sync = () => {
+  queue = queue.then(async () => {
+    if (!(await init())) return;
+    if (want && !on) {
+      try {
+        await AdMob.showBanner({
+          adId: ADS.BANNER_ID,
+          adSize: BannerAdSize.ADAPTIVE_BANNER,
+          position: BannerAdPosition.BOTTOM_CENTER,
+          margin: TAB_BAR_DP,
+          isTesting: ADS.TESTING,
+        });
+        on = true;
+      } catch (e) { /* offline — FailedToLoad listener retries */ }
+    } else if (!want && on) {
+      try { await AdMob.removeBanner(); } catch (e) { /* ignore */ }
+      on = false;
+      clearTimeout(retryTimer);
+    }
+  });
+  return queue;
 };
 
-export const hideBanner = async () => {
-  if (!isApp || !bannerShown) return;
-  try { await AdMob.removeBanner(); } catch (e) { /* ignore */ }
-  bannerShown = false;
-};
+export const showBanner = () => { want = true; return sync(); };
+export const hideBanner = () => { want = false; clearTimeout(retryTimer); return isApp ? sync() : Promise.resolve(); };
 
 // Full-screen ad — at most once every 3 minutes, only at natural breaks (e.g. game over).
 export const showInterstitial = async () => {

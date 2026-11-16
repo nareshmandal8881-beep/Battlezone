@@ -6,7 +6,7 @@ import { db } from '../../firebase/config';
 import { PageHead, Avatar, rupees } from '../../components/ui';
 import { sendNotification } from '../../lib/notify';
 import ModeMapPicker from '../../components/ModeMapPicker';
-import { normalise } from '../../lib/gameModes';
+import { normalise, perSide, randomTeams } from '../../lib/gameModes';
 import { useGames } from '../../lib/games';
 
 const Modal = ({ title, onClose, children }) => (
@@ -85,6 +85,7 @@ const ManageTournaments = () => {
       mode: edit.mode || '',
       map: edit.map || '',
       teamSize: edit.teamSize || '',
+      maxSlots: Number(edit.maxSlots) || 0,
       bannerUrl: (edit.bannerUrl || '').trim() || null,
     };
     try {
@@ -113,6 +114,25 @@ const ManageTournaments = () => {
     a.href = URL.createObjectURL(blob);
     a.download = `${roster.name}_players.csv`;
     a.click();
+  };
+
+  const shuffleTeams = async () => {
+    const size = perSide(roster.teamSize);
+    if (!size || players.length < 2) return;
+    if (roster.teams && !window.confirm('Teams already made. Shuffle again?')) return;
+    const pick = randomTeams(players.map((p) => ({ uid: p.uid, name: p.username || p.email || 'Player' })), size);
+    try {
+      await updateDoc(doc(db, 'tournaments', roster.id), { teams: pick });
+      setRoster((r) => ({ ...r, teams: pick }));
+      setList((l) => l.map((t) => (t.id === roster.id ? { ...t, teams: pick } : t)));
+      toast.success('Random teams ready');
+    } catch (e) { toast.error('Could not save teams'); }
+  };
+
+  const teamOf = (uid) => {
+    if (roster?.teams?.A?.some((x) => x.uid === uid)) return 'A';
+    if (roster?.teams?.B?.some((x) => x.uid === uid)) return 'B';
+    return null;
   };
 
   const setE = (k) => (e) => setEdit((p) => ({ ...p, [k]: e.target.value }));
@@ -241,14 +261,21 @@ const ManageTournaments = () => {
               <div key={p.uid} className="flex items-center gap-3 py-2.5 border-b border-line">
                 <span className="num text-[12px] text-muted w-6">{i + 1}</span>
                 <Avatar name={p.username} src={p.photoURL} size={30} />
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                   <p className="font-semibold text-[14px] truncate">{p.username}</p>
                   <p className="text-[12px] text-muted truncate">{p.email}</p>
                 </div>
+                {teamOf(p.uid) && <span className={`tag ${teamOf(p.uid) === 'A' ? 'border-accent text-accent' : 'border-ink'}`}>Team {teamOf(p.uid)}</span>}
+                {roster.teams && !teamOf(p.uid) && <span className="tag border-line text-muted">Extra</span>}
               </div>
             ))}
           </div>
-          <div className="flex justify-end mt-4">
+          <div className="flex justify-end gap-2 mt-4">
+            {perSide(roster.teamSize) && (
+              <button onClick={shuffleTeams} disabled={players.length < 2} className="btn btn-light btn-sm">
+                {roster.teams ? 'Shuffle again' : `Random teams (${roster.teamSize})`}
+              </button>
+            )}
             <button onClick={downloadCSV} disabled={!players.length} className="btn btn-dark btn-sm">Download CSV</button>
           </div>
         </Modal>
