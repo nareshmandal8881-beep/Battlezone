@@ -20,6 +20,7 @@ import Profile from './pages/Profile';
 import Settings from './pages/Settings';
 import Leaderboard from './pages/Leaderboard';
 import Ludo from './pages/Ludo';
+import GameLobby from './pages/GameLobby';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import CreateTournament from './pages/admin/CreateTournament';
 import ManageTournaments from './pages/admin/ManageTournaments';
@@ -59,6 +60,7 @@ const routes = (
     <Route path="/tournament/:id" element={<AppGate><TournamentDetail /></AppGate>} />
     <Route path="/leaderboard" element={<AppGate><Leaderboard /></AppGate>} />
     <Route path="/ludo" element={<Ludo />} />
+    <Route path="/play" element={<ProtectedRoute><GameLobby /></ProtectedRoute>} />
     <Route path="/login" element={<Login />} />
     <Route path="/register" element={<Register />} />
     <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />

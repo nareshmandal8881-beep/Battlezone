@@ -19,6 +19,7 @@ const links = [
   { label: 'Tournaments', path: '/tournaments' },
   { label: 'Leaderboard', path: '/leaderboard' },
   { label: 'Ludo', path: '/ludo' },
+  { label: '🎮 Play', path: '/play' },
   { label: 'Settings', path: '/settings', auth: true },
 ];
 
