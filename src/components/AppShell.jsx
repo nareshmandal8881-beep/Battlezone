@@ -45,7 +45,7 @@ const AppShell = ({ children }) => {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const { unread } = useNotifications();
-  const bannerHere = isApp && !NO_BANNER.includes(pathname) && !pathname.startsWith('/admin');
+  const bannerHere = isApp && !NO_BANNER.includes(pathname) && !pathname.startsWith('/admin') && !pathname.startsWith('/ludo');
   useEffect(() => { if (bannerHere) showBanner(); else hideBanner(); }, [bannerHere]);
 
   if (pathname === '/login' || pathname === '/register') {
@@ -53,7 +53,7 @@ const AppShell = ({ children }) => {
   }
 
   const isRoot = ROOT.includes(pathname);
-  const title = TITLES[pathname] ?? (pathname.startsWith('/tournament/') ? 'Match' : '');
+  const title = TITLES[pathname] ?? (pathname.startsWith('/tournament/') ? 'Match' : pathname.startsWith('/ludo/room/') ? 'Ludo room' : '');
   const name = userProfile?.username || currentUser?.displayName || 'Player';
 
   return (
